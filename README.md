@@ -7,6 +7,10 @@ Apresentação web cinematográfica (22 slides, ~40 min) feita com **reveal.js 6
 
 ![Prévia dos slides](docs/preview.jpg)
 
+> **Nova versão — VIII SIPAT/SIPATR 2026:** a pasta [`sipat-2026/`](sipat-2026/) traz a palestra mesclada no formato do artefato da SIPAT (palco 16:9 com hachura e partículas, boot, votações A/B, contador ao vivo, história do Zé), com o conteúdo e as fotos desta apresentação e a identificação *Cloves Oliveira · Superintendente Agrícola CRV-MG · 23 de novembro*. Versão online (privada, compartilhe pelo menu Share): https://claude.ai/artifact/FmTVHADHCfhMe3kecrFYyz
+>
+> Para apresentar localmente, abra `sipat-2026/index.html` no Chrome ou Edge. Atalhos: → avança · ← volta · **F** tela cheia · **N** notas. As fontes vêm do Google Fonts; sem internet, a página usa Arial.
+
 ---
 
 ## Como apresentar

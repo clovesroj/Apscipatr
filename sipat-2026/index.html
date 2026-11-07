@@ -1,0 +1,804 @@
+<title>SIPAT Voltar para Casa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Open+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Palco 16:9 fixo (1600×900) escalado à janela; fundo em canvas com a hachura e as partículas do cartaz da SIPAT; fotos fundidas ao fundo */
+:root{
+  --bg:#262c32; --bg2:#30373f; --panel:#38414b; --slate:#4a5562;
+  --ink:#f2f5ec; --mute:#aab2aa; --lime:#c2ff6b; --lime-d:#9be04a; --orange:#ff9a4a; --stop:#d93a2b;
+  --display:'Montserrat','Arial Black',Arial,sans-serif; --body:'Open Sans',Arial,sans-serif; --mono:'JetBrains Mono','Courier New',monospace;
+  color-scheme:dark;
+}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--body)}
+*{box-sizing:border-box}
+#stage{position:absolute;left:50%;top:50%;width:1600px;height:900px;transform-origin:center;overflow:hidden;background:var(--bg);user-select:none;-webkit-user-select:none}
+#bg{position:absolute;inset:0;width:1600px;height:900px}
+.slide{position:absolute;inset:0;padding:86px 110px 110px;opacity:0;visibility:hidden;transition:opacity .6s ease,visibility .6s;display:flex;flex-direction:column;isolation:isolate}
+.slide.on{opacity:1;visibility:visible}
+.step{opacity:0;transform:translateY(28px);transition:opacity .55s ease,transform .55s cubic-bezier(.2,.8,.2,1)}
+.step.in{opacity:1;transform:none}
+.eyebrow{font-family:var(--mono);font-size:22px;letter-spacing:.14em;text-transform:uppercase;color:var(--lime)}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:132px;font-weight:900;line-height:.98;letter-spacing:-.02em}
+h2{font-size:76px;font-weight:800;line-height:1.05;letter-spacing:-.01em}
+h3{font-size:40px;font-weight:800;line-height:1.15}
+p{margin:0}
+.lead{font-size:34px;line-height:1.4;color:var(--mute);max-width:1180px}
+.lime{color:var(--lime)} .orange{color:var(--orange)}
+.big{font-family:var(--display);font-weight:900;line-height:.9;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.src{position:absolute;left:110px;bottom:66px;font-size:20px;color:var(--mute);opacity:.8}
+
+/* fotos fundidas ao fundo (atrás do conteúdo, sobre o canvas) */
+.ph{position:absolute;inset:0;z-index:-1;background-position:center;background-size:cover;background-repeat:no-repeat;opacity:.5;filter:saturate(.78) contrast(1.05);pointer-events:none;transform-origin:70% 50%}
+.ph.r{-webkit-mask-image:linear-gradient(90deg,transparent 18%,rgba(0,0,0,.5) 50%,#000 86%);mask-image:linear-gradient(90deg,transparent 18%,rgba(0,0,0,.5) 50%,#000 86%)}
+.ph.b{opacity:.66;-webkit-mask-image:linear-gradient(180deg,#000 22%,rgba(0,0,0,.45) 58%,transparent 90%);mask-image:linear-gradient(180deg,#000 22%,rgba(0,0,0,.45) 58%,transparent 90%)}
+.ph.f{opacity:.3}
+.slide.on .ph{animation:kb 26s ease-out both}
+@keyframes kb{from{transform:scale(1.02)}to{transform:scale(1.12)}}
+
+/* boot */
+.boot{justify-content:center;align-items:center}
+.bootwrap{width:1000px;display:flex;flex-direction:column;gap:34px}
+.bootlogo{display:flex;align-items:flex-end;gap:22px}
+.bootlogo .v{font-family:var(--display);font-weight:900;font-size:150px;line-height:.8;color:var(--lime)}
+.bootlogo .bt{font-family:var(--body);font-weight:600;font-size:56px;line-height:1;color:transparent;-webkit-text-stroke:2px var(--ink)}
+.bootlog{font-family:var(--mono);font-size:24px;line-height:1.7;color:var(--mute);min-height:290px;white-space:pre}
+.bootlog b{color:var(--lime);font-weight:600}
+.bar{height:8px;background:var(--panel);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--lime);transition:width .35s linear}
+.bootgo{font-family:var(--mono);font-size:24px;color:var(--lime);opacity:0;transition:opacity .5s}
+.bootgo.show{opacity:1;animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{50%{opacity:.35}}
+
+/* capa */
+.cover{padding:0}
+.cover .y2026{position:absolute;right:70px;top:30px;font-family:var(--display);font-weight:800;font-size:250px;line-height:1;color:#f8f6ee;letter-spacing:-.02em}
+.cover .figs{position:absolute;left:250px;top:330px;width:250px}
+.cover .mark{position:absolute;left:200px;top:470px;display:flex;align-items:flex-end;gap:26px}
+.cover .mark .v{font-family:var(--display);font-weight:900;font-size:230px;line-height:.78;color:var(--lime)}
+.cover .mark .bt{font-family:var(--body);font-weight:600;font-size:92px;line-height:1;color:transparent;-webkit-text-stroke:2.5px var(--ink)}
+.cover .tema{position:absolute;left:0;right:0;top:700px;text-align:center;font-family:var(--body);font-weight:700;font-size:38px;letter-spacing:.01em;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.cover .who{position:absolute;left:0;right:0;top:760px;text-align:center;font-size:24px;color:var(--mute)}
+.band{position:absolute;left:0;right:0;bottom:0;height:96px;background:linear-gradient(90deg,#8ddb55,#c4e16a);display:flex;justify-content:center;align-items:center}
+.band img{height:78px;width:auto;max-width:none}
+
+/* capítulos */
+.chapter{justify-content:center;background:linear-gradient(120deg,rgba(194,255,107,.10),transparent 60%)}
+.chapter .num{font-family:var(--display);font-weight:900;font-size:300px;line-height:.8;color:transparent;-webkit-text-stroke:3px var(--lime);position:absolute;right:110px;bottom:80px;opacity:.55}
+.chapter h1{max-width:1100px}
+.chapter .lead{margin-top:30px}
+
+/* listas e cartões */
+.rows{display:flex;flex-direction:column;gap:26px;margin-top:56px}
+.row{display:flex;gap:30px;align-items:baseline;font-size:38px;line-height:1.3}
+.row .k{font-family:var(--mono);font-size:24px;color:var(--lime);min-width:120px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:46px}
+.card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:30px 34px;display:flex;flex-direction:column;gap:10px}
+.card .big{font-size:96px;color:var(--lime)}
+.card p{font-size:28px;line-height:1.35;color:var(--ink)}
+.timeline{display:flex;gap:22px;margin-top:70px}
+.tl{flex:1;border-top:6px solid var(--slate);padding-top:22px;display:flex;flex-direction:column;gap:10px}
+.tl.in{border-top-color:var(--lime)}
+.tl .t{font-family:var(--mono);font-size:24px;color:var(--lime)}
+.tl h3{font-size:36px}
+.tl p{font-size:26px;color:var(--mute);line-height:1.35}
+
+/* contador */
+.counter .big{font-size:300px;color:var(--orange);margin-top:20px}
+.counter .clockline{font-family:var(--mono);font-size:30px;color:var(--mute);margin-top:12px}
+
+/* pirâmide */
+.pyr{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:40px}
+.lay{display:grid;grid-template-columns:760px 560px;align-items:center;gap:40px}
+.trap{height:118px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:56px;color:var(--bg)}
+.lay .lbl{font-size:30px;line-height:1.3}
+.lay .lbl b{color:var(--lime)}
+
+/* cenas */
+.scene .clock{font-family:var(--mono);font-size:30px;color:var(--lime);display:flex;gap:22px;align-items:center}
+.scene .clock span{color:var(--mute);font-size:24px;letter-spacing:.06em;text-transform:uppercase}
+.scene h2{font-size:58px;max-width:1300px;margin-top:26px;line-height:1.15}
+.vote{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:48px}
+.opt{border-radius:18px;padding:28px 34px;display:flex;gap:24px;align-items:center;font-size:32px;line-height:1.3;background:var(--bg2);border:2px solid var(--slate);transition:all .5s}
+.opt .l{font-family:var(--display);font-weight:900;font-size:60px;width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;background:var(--panel)}
+.reveal .opt.good{border-color:var(--lime);background:#3a4a35}
+.reveal .opt.good .l{background:var(--lime);color:var(--bg)}
+.reveal .opt.bad{opacity:.45}
+.answer{margin-top:34px;font-size:34px;line-height:1.35;border-left:6px solid var(--lime);padding:6px 0 6px 28px;max-width:1300px}
+.hand{font-family:var(--mono);font-size:22px;color:var(--mute);margin-top:18px}
+.ask{margin-top:26px;font-family:var(--display);font-weight:800;font-size:38px;line-height:1.2;color:var(--lime);max-width:1300px}
+
+/* família e frases da abertura */
+.chips{display:flex;flex-wrap:wrap;gap:16px;margin-top:40px}
+.chip{font-family:var(--mono);font-size:26px;padding:12px 24px;border-radius:999px;background:rgba(38,44,50,.78);border:2px solid var(--slate);color:var(--ink)}
+.chip b{color:var(--lime);font-weight:600}
+.lema h1{font-size:120px}
+.lema .l2{color:var(--lime);margin-top:10px}
+
+/* por que o atalho */
+.quote{font-family:var(--display);font-weight:800;font-size:44px;line-height:1.2;color:var(--ink)}
+.rows.q .row{align-items:center}
+.rows.q .k{min-width:200px}
+
+/* produzir mais × melhor */
+.vs .card{gap:18px;padding:34px 38px}
+.vs .card .big{font-size:110px}
+.vs .card.more .big{color:var(--orange)}
+.vs .card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+.vs .card li{font-size:30px;line-height:1.3;padding-left:34px;position:relative}
+.vs .card li::before{content:'';position:absolute;left:0;top:16px;width:16px;height:4px;border-radius:2px;background:var(--lime)}
+.vs .card.more li{color:var(--mute)}
+.vs .card.more li::before{background:var(--orange)}
+
+/* parar */
+.stopsign{position:absolute;right:110px;top:70px;width:230px;height:230px;filter:drop-shadow(0 18px 40px rgba(0,0,0,.45))}
+
+/* compromisso */
+.pledge{font-family:var(--display);font-weight:800;font-size:58px;line-height:1.14;max-width:1300px;margin-top:22px}
+.pledge .lime{font-family:var(--display)}
+.sign{font-family:var(--mono);font-size:24px;color:var(--ink);margin-top:34px;display:flex;align-items:center;gap:18px}
+.sign::before{content:'';width:70px;height:4px;background:var(--lime);border-radius:2px}
+.closing p{font-family:var(--display);font-weight:800;font-size:64px;line-height:1.12}
+
+/* liderança */
+#peoplecv{position:absolute;left:0;top:0;width:1600px;height:900px}
+.lider h2,.lider .lead{position:relative}
+
+/* anel */
+.ringwrap{display:flex;gap:80px;align-items:center;margin-top:30px}
+.ringwrap svg{width:440px;height:440px;flex:none}
+.ringlines{display:flex;flex-direction:column;gap:22px}
+.ringlines p{font-family:var(--display);font-weight:800;font-size:52px;line-height:1.1}
+
+/* discurso */
+.speech{justify-content:center}
+.speech h1{font-size:150px}
+
+/* barra */
+#hud{position:absolute;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;gap:20px;padding:0 30px;font-family:var(--mono);font-size:18px;color:var(--mute);transition:opacity .4s;z-index:5}
+#hud.hide{opacity:0}
+#prog{flex:1;display:flex;gap:6px}
+#prog i{flex:1;height:4px;background:rgba(255,255,255,.12);border-radius:2px;position:relative;overflow:hidden}
+#prog i b{position:absolute;inset:0;width:0;background:var(--lime)}
+#hud button{font:inherit;color:var(--ink);background:var(--panel);border:0;border-radius:8px;padding:7px 12px;cursor:pointer}
+#hud button:focus-visible{outline:2px solid var(--lime)}
+#notes{position:fixed;left:0;right:0;bottom:0;max-height:42vh;overflow:auto;background:rgba(20,24,28,.96);border-top:3px solid var(--lime);padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-size:18px;line-height:1.6;color:var(--ink);z-index:20}
+#notes .nh{font-family:var(--mono);font-size:14px;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+#notes p{margin:0 0 10px;max-width:980px}
+template{display:none}
+@media (prefers-reduced-motion:reduce){.slide,.step,.opt{transition:none}.slide.on .ph{animation:none}}
+</style>
+
+<div id="stage">
+<canvas id="bg" width="1600" height="900"></canvas>
+
+<!-- ============ ABERTURA ============ -->
+
+<!-- boot -->
+<section class="slide boot on" data-id="boot" data-bg="dark" data-block="0">
+  <div class="bootwrap">
+    <div class="bootlogo"><span class="v">VIII</span><span class="bt">SIPAT<br>SIPATR</span></div>
+    <div class="bootlog" id="bootlog"></div>
+    <div class="bar"><i id="bootbar"></i></div>
+    <div class="bootgo" id="bootgo">▸ Pressione → ou toque na tela para iniciar</div>
+  </div>
+  <template class="notes"><p>Deixe esta tela aberta enquanto as pessoas entram. A sequência de "carregamento" roda sozinha. Quando todos estiverem sentados, avance com → (ou com o passador de slides).</p><p>Atalhos: → ou espaço avança · ← volta · F tela cheia · N notas do apresentador. O relógio da barra inferior começa a contar quando você sai desta tela.</p></template>
+</section>
+
+<!-- capa -->
+<section class="slide cover" data-bg="hatch" data-block="0">
+  <div class="y2026">2026</div>
+  <svg class="figs" viewBox="0 0 250 190" aria-label="Grupo de cinco pessoas, a do centro iluminada">
+    <g fill="#3d4651" stroke="#a6a6a6" stroke-width="3">
+      <circle cx="34" cy="62" r="17"/><rect x="12" y="84" width="44" height="100" rx="14"/>
+      <circle cx="78" cy="54" r="17"/><rect x="56" y="76" width="44" height="108" rx="14"/>
+      <circle cx="172" cy="54" r="17"/><rect x="150" y="76" width="44" height="108" rx="14"/>
+      <circle cx="216" cy="62" r="17"/><rect x="194" y="84" width="44" height="100" rx="14"/>
+    </g>
+    <g fill="#c2ff6b"><circle cx="125" cy="48" r="20"/><rect x="99" y="74" width="52" height="116" rx="16"/></g>
+    <g stroke="#c2ff6b" stroke-width="6" stroke-linecap="round"><line x1="125" y1="4" x2="125" y2="16"/><line x1="96" y1="14" x2="104" y2="24"/><line x1="154" y1="14" x2="146" y2="24"/></g>
+  </svg>
+  <div class="mark"><span class="v">VIII</span><span class="bt">SIPAT<br>SIPATR</span></div>
+  <div class="tema">LIDERANÇA QUE INSPIRA, SEGURANÇA QUE TRANSFORMA</div>
+  <div class="who">Cloves Oliveira · Superintendente Agrícola CRV-MG · 23 de novembro · tarde</div>
+  <div class="band"><img src="img/faixa-crv.jpg" alt="Segurança do Trabalho CRV, CRV Industrial, bandeiras do Brasil e de Minas Gerais"></div>
+  <template class="notes"><p><b>Abertura · 1 min.</b> Boa tarde, apresentação rápida: nome, função, há quanto tempo na CRV. Diga que essa hora vai ser diferente: pouca palestra, muita decisão de vocês.</p><p>Postura: você não está indo "ensinar segurança". Você é um líder que também tem responsabilidade sobre o assunto e está disposto a assumi-la.</p></template>
+</section>
+
+<!-- o que espera por você -->
+<section class="slide" data-bg="dark" data-block="0" style="justify-content:flex-end">
+  <div class="ph b" style="background-image:url(img/familia.jpg);background-position:center 35%"></div>
+  <div class="eyebrow">Uma pergunta simples</div>
+  <h2 style="margin-top:18px;max-width:1250px">O que espera por você quando termina o expediente?</h2>
+  <div class="chips">
+    <span class="chip step" data-s="1"><b>›</b> a família</span>
+    <span class="chip step" data-s="2"><b>›</b> os filhos</span>
+    <span class="chip step" data-s="3"><b>›</b> os pais</span>
+    <span class="chip step" data-s="4"><b>›</b> quem você ama</span>
+  </div>
+  <template class="notes"><p><b>2 min.</b> "Quero começar nossa conversa fazendo uma pergunta simples. Quando vocês saem de casa para trabalhar, o que esperam encontrar quando voltarem?"</p><p>(pausa: deixe a pergunta no ar) → avance os itens um a um: "Provavelmente a família, os filhos, a esposa, o marido, os pais… pessoas que esperam por vocês."</p><p>Feche: "Por trás de cada trabalhador existe uma vida que não pode ser colocada em risco."</p></template>
+</section>
+
+<!-- existe alguma meta -->
+<section class="slide speech" data-bg="particles" data-block="0">
+  <div class="eyebrow">A pergunta desta tarde</div>
+  <h2 style="margin-top:22px;font-size:84px;max-width:1300px">Existe alguma meta mais importante do que <span class="lime">voltar para casa</span> em segurança?</h2>
+  <p class="lead step" data-s="1" style="margin-top:40px;color:var(--ink)">Nenhuma tonelada de cana. Nenhuma máquina trabalhando. Nenhum resultado.</p>
+  <template class="notes"><p><b>1 min.</b> "Será que existe alguma meta de produção, alguma tonelada de cana, alguma máquina trabalhando ou algum resultado que seja mais importante do que garantir que cada um de vocês volte para casa em segurança?"</p><p>(pausa longa, 3 a 4 segundos) → "Nenhuma tonelada de cana. Nenhuma máquina. Nenhum resultado."</p></template>
+</section>
+
+<!-- lema -->
+<section class="slide speech lema" data-bg="dark" data-block="0">
+  <div class="ph r" style="background-image:url(img/final.jpg);opacity:.62"></div>
+  <div class="eyebrow">O que eu quero que fique</div>
+  <h1 style="margin-top:24px">Produzir é importante.</h1>
+  <h1 class="l2 step" data-s="1">Voltar para casa é inegociável.</h1>
+  <template class="notes"><p><b>1 min.</b> Diga a primeira frase, faça uma pausa e → revele a segunda.</p><p>"A empresa precisa produzir, colher e alimentar a indústria. Mas nenhuma meta justifica colocar uma vida em risco. Produzir é importante. Voltar para casa é inegociável." Essa frase vai voltar no final.</p></template>
+</section>
+
+<!-- combinado -->
+<section class="slide" data-bg="hatch" data-block="0">
+  <div class="eyebrow">Antes de começar</div>
+  <h2 style="margin-top:18px">Um combinado para esta tarde</h2>
+  <div class="rows">
+    <div class="row step" data-s="1"><span class="k">1 hora</span><span>Quatro blocos curtos. Nada de aula longa.</span></div>
+    <div class="row step" data-s="2"><span class="k">A ou B</span><span>Em alguns momentos, <b class="lime">você decide</b>. Eu leio as opções e você levanta a mão na que faria de verdade.</span></div>
+    <div class="row step" data-s="3"><span class="k">sem julgamento</span><span>Ninguém vai ser cobrado pela resposta. Vale a sinceridade.</span></div>
+    <div class="row step" data-s="4"><span class="k">no final</span><span>Uma história. E um pedido.</span></div>
+  </div>
+  <template class="notes"><p><b>2 min.</b> Teste o combinado com uma pergunta leve: "Quem aqui já trabalhou uma safra inteira? Levanta a mão." Isso aquece a plateia para as votações do bloco 2.</p></template>
+</section>
+
+<!-- agenda -->
+<section class="slide" data-bg="hatch" data-block="0">
+  <div class="eyebrow">A tarde</div>
+  <h2 style="margin-top:18px">Quatro blocos</h2>
+  <div class="timeline">
+    <div class="tl step" data-s="1"><span class="t">8 min</span><h3>O tamanho do problema</h3><p>O que os números do Brasil dizem sobre o trabalho.</p></div>
+    <div class="tl step" data-s="2"><span class="t">24 min</span><h3>Um dia de trabalho</h3><p>Sete situações, das 6h às 18h. Você escolhe.</p></div>
+    <div class="tl step" data-s="3"><span class="t">15 min</span><h3>Liderança que inspira</h3><p>Como uma atitude muda uma equipe. E o que é dever de quem lidera.</p></div>
+    <div class="tl step" data-s="4"><span class="t">10 min</span><h3>Segurança que transforma</h3><p>Uma história para levar para casa.</p></div>
+  </div>
+  <template class="notes"><p><b>1 min.</b> Só apresente o caminho. Não explique os blocos.</p></template>
+</section>
+
+<!-- ============ BLOCO 1 ============ -->
+
+<section class="slide chapter" data-bg="particles" data-block="1">
+  <div class="eyebrow">Bloco 1</div>
+  <h1 style="margin-top:20px">O tamanho do problema</h1>
+  <p class="lead">Antes de falar da gente, vamos olhar para o país.</p>
+  <div class="num">1</div>
+  <template class="notes"><p><b>Bloco 1 · 8 min no total.</b></p></template>
+</section>
+
+<section class="slide counter" data-id="counter" data-bg="alert" data-block="1">
+  <div class="eyebrow">Desde que esta apresentação começou</div>
+  <div class="big" id="cnt">0</div>
+  <p class="lead" style="color:var(--ink);font-size:40px">acidentes de trabalho notificados no Brasil.</p>
+  <p class="clockline" id="cntclock">em 00:00 de apresentação · cerca de 1,4 por minuto</p>
+  <p class="src">Estimativa pela média de 8,8 milhões de notificações entre 2012 e 2024 (MPT / Observatório SmartLab). O número cresce ao vivo.</p>
+  <template class="notes"><p><b>2 min.</b> Deixe o número subir em silêncio por alguns segundos. Depois explique: é a média do Brasil, cerca de 8,8 milhões de acidentes notificados em 12 anos, o que dá perto de 1,4 por minuto.</p><p>Pergunta para a plateia: "Quantos desses vocês acham que a pessoa achou que nunca ia acontecer com ela?"</p><p>Dica: no final, volte a este slide (tecla Home e depois → até aqui) para mostrar quanto o número andou durante a tarde.</p></template>
+</section>
+
+<section class="slide" data-id="deaths" data-bg="alert" data-block="1">
+  <div class="eyebrow">2012 a 2024 · emprego com carteira</div>
+  <div class="big" id="dth" style="font-size:250px;color:var(--ink);margin-top:20px">0</div>
+  <p class="lead" style="color:var(--ink);font-size:40px">mortes por acidente de trabalho.</p>
+  <div class="rows" style="margin-top:44px;gap:18px">
+    <div class="row step" data-s="1"><span class="k">média</span><span>Uma notificação de morte no trabalho <b class="orange">a cada 3 horas e meia</b>.</span></div>
+    <div class="row step" data-s="2"><span class="k">hoje</span><span>Pela média, durante esta tarde de SIPAT, uma família no Brasil vai receber essa notícia.</span></div>
+  </div>
+  <p class="src">Fonte: MPT / Observatório de Segurança e Saúde no Trabalho (SmartLab), Abril Verde 2025. Dados parciais, sujeitos a subnotificação.</p>
+  <template class="notes"><p><b>2 min.</b> Fale devagar no segundo ponto e faça uma pausa. Ligue com a abertura: "É uma família que esperava alguém voltar para casa."</p></template>
+</section>
+
+<section class="slide" data-bg="hatch" data-block="1">
+  <div class="eyebrow">O que mais machuca</div>
+  <h2 style="margin-top:18px">Máquinas e equipamentos, e as nossas mãos</h2>
+  <div class="grid2">
+    <div class="card step" data-s="1"><span class="big">13,6%</span><p>dos acidentes de trabalho no Brasil envolvem máquinas e equipamentos. É o principal agente causador.</p></div>
+    <div class="card step" data-s="2"><span class="big">15×</span><p>Acidentes com máquinas causam lesões gravíssimas com frequência 15 vezes maior do que as outras causas.</p></div>
+    <div class="card step" data-s="3"><span class="big">60%</span><p>dos afastamentos por acidente são por fratura, com punho e mão na frente.</p></div>
+    <div class="card step" data-s="4"><span class="big orange">4,6 mil</span><p>amputações em 2024. Cerca de 12 por dia.</p></div>
+  </div>
+  <p class="src">Fonte: MPT / Observatório SmartLab, dados 2012–2024.</p>
+  <template class="notes"><p><b>2 min.</b> Ligue com a nossa realidade: colhedora, trator, caminhão, oficina. "Nós trabalhamos cercados do principal agente causador do país."</p><p>No último cartão, peça para todos olharem para as próprias mãos por um segundo.</p></template>
+</section>
+
+<section class="slide" data-bg="hatch" data-block="1">
+  <div class="eyebrow">Pirâmide de Frank Bird · 1969</div>
+  <h2 style="margin-top:18px">O que a gente vê e o que não vê</h2>
+  <div class="pyr">
+    <div class="lay step" data-s="1"><div class="trap" style="width:170px;background:var(--orange);clip-path:polygon(38% 0,62% 0,100% 100%,0 100%)">1</div><p class="lbl"><b>lesão grave</b> ou incapacitante</p></div>
+    <div class="lay step" data-s="2"><div class="trap" style="width:340px;background:#ffc27a;clip-path:polygon(25% 0,75% 0,100% 100%,0 100%)">10</div><p class="lbl"><b>lesões leves</b></p></div>
+    <div class="lay step" data-s="3"><div class="trap" style="width:510px;background:#e3f7b5;clip-path:polygon(16.6% 0,83.4% 0,100% 100%,0 100%)">30</div><p class="lbl"><b>acidentes com dano</b> a equipamento</p></div>
+    <div class="lay step" data-s="4"><div class="trap" style="width:680px;background:var(--lime);clip-path:polygon(12.5% 0,87.5% 0,100% 100%,0 100%)">600</div><p class="lbl"><b>quase-acidentes</b>: ninguém se machucou, nada quebrou</p></div>
+  </div>
+  <p class="src step" data-s="5" style="font-size:28px;color:var(--ink)">O acidente começa antes do acidente. A base é onde a gente trabalha, e é ali que se evita o topo.</p>
+  <template class="notes"><p><b>2 min.</b> Monte de cima para baixo. No 600, pergunte: "Quem aqui já passou por um susto que ninguém ficou sabendo?" Deixe levantarem a mão.</p><p>Fecho: "O acidente pode acontecer em segundos, mas quase sempre começa muito antes: num sinal que ninguém comunicou, num desvio, numa pequena decisão. Cada quase-acidente que alguém conta é uma chance de impedir o 1 lá de cima."</p></template>
+</section>
+
+<!-- ============ BLOCO 2 ============ -->
+
+<section class="slide chapter" data-bg="particles" data-block="2">
+  <div class="eyebrow">Bloco 2</div>
+  <h1 style="margin-top:20px">Um dia de trabalho</h1>
+  <p class="lead">Sete situações entre 6h e 18h. Em cada uma, levante a mão na opção que você faria de verdade.</p>
+  <div class="num">2</div>
+  <template class="notes"><p><b>Bloco 2 · 24 min, cerca de 3 min por situação.</b> Ritmo de cada uma: leia a situação → mostre as opções (→) → peça mãos para A, depois para B → pergunte a alguém por que escolheu → revele (→).</p></template>
+</section>
+
+<section class="slide scene" data-bg="hatch" data-block="2">
+  <div class="ph r" style="background-image:url(img/capa.jpg)"></div>
+  <div class="clock">06:10 <span>Caminhonete · estrada interna da fazenda</span></div>
+  <h2>Você precisa ir da frente até a oficina. São 3 km de estrada de terra. O cinto está emperrado.</h2>
+  <div class="vote step" data-s="1"><div class="opt good"><span class="l">A</span>Arrumo o cinto antes de sair.</div><div class="opt bad"><span class="l">B</span>Vou sem. É perto e devagar.</div></div>
+  <p class="hand step" data-s="1">✋ Levante a mão: A ou B?</p>
+  <p class="answer step" data-s="2">Perto e devagar também capota. O cinto não sabe se a viagem é curta.</p>
+  <template class="notes"><p>Pergunte quem já andou sem cinto "só um pedacinho" dentro da fazenda.</p></template>
+</section>
+
+<section class="slide scene" data-bg="hatch" data-block="2">
+  <div class="ph r" style="background-image:url(img/voz.jpg)"></div>
+  <div class="clock">06:40 <span>Início do turno · checklist da máquina</span></div>
+  <h2>A máquina rodou ontem o dia inteiro sem problema. O checklist está na sua mão.</h2>
+  <div class="vote step" data-s="1"><div class="opt bad"><span class="l">A</span>Marco tudo OK. Ontem estava bom.</div><div class="opt good"><span class="l">B</span>Dou a volta na máquina e confiro item por item.</div></div>
+  <p class="hand step" data-s="1">✋ Levante a mão: A ou B?</p>
+  <p class="answer step" data-s="2">O checklist não é sobre ontem. É sobre o que mudou desde a última vez que alguém olhou.</p>
+  <template class="notes"><p>Aqui a resposta sincera costuma ser B. Agradeça a sinceridade de quem levantar a mão.</p></template>
+</section>
+
+<section class="slide scene" data-bg="hatch" data-block="2">
+  <div class="ph r" style="background-image:url(img/engrenagens.jpg)"></div>
+  <div class="clock">09:30 <span>Oficina · troca de correia</span></div>
+  <h2>O equipamento está desligado, mas a chave ficou na ignição. Tem outras pessoas trabalhando por perto.</h2>
+  <div class="vote step" data-s="1"><div class="opt good"><span class="l">A</span>Tiro a chave, bloqueio e sinalizo antes de começar.</div><div class="opt bad"><span class="l">B</span>Está desligado. Começo logo.</div></div>
+  <p class="hand step" data-s="1">✋ Levante a mão: A ou B?</p>
+  <p class="answer step" data-s="2">Desligado não é bloqueado. A chave no seu bolso é a garantia de que ninguém liga.</p>
+  <template class="notes"><p>Peça para alguém da oficina contar como é o bloqueio e a etiquetagem na prática.</p></template>
+</section>
+
+<section class="slide scene" data-bg="hatch" data-block="2">
+  <div class="ph r" style="background-image:url(img/dilema.jpg)"></div>
+  <div class="clock">11:00 <span>Frente de colheita · programação atrasada</span></div>
+  <h2>A máquina começou a apresentar uma anormalidade. A equipe está atrasada e falta pouco para fechar o talhão.</h2>
+  <div class="vote step" data-s="1"><div class="opt bad"><span class="l">A</span>Termino o talhão e depois vejo. Falta pouco.</div><div class="opt good"><span class="l">B</span>Paro, comunico e só retomo depois da avaliação.</div></div>
+  <p class="hand step" data-s="1">✋ Levante a mão: A ou B?</p>
+  <p class="answer step" data-s="2">Parar antes é uma atitude responsável. Uma máquina pode parar e voltar a trabalhar.</p>
+  <p class="ask step" data-s="3">E na prática: todos nós temos liberdade e segurança para tomar essa decisão?</p>
+  <template class="notes"><p><b>4 min · a situação mais importante do bloco.</b> É a pressão por resultado. Depois de revelar, → faça a pergunta aberta e ouça sem julgar: "Será que, na prática, todos nós temos liberdade e segurança para tomar essa decisão?"</p><p>Deixe a conversa acontecer: cultura, liderança, comunicação. Essa resposta prepara o bloco 3.</p></template>
+</section>
+
+<section class="slide scene" data-bg="hatch" data-block="2">
+  <div class="ph r" style="background-image:url(img/producao.jpg)"></div>
+  <div class="clock">13:20 <span>Frente de colheita</span></div>
+  <h2>Você precisa entregar uma peça ao operador da colhedora, que está cortando. Ele ainda não te viu.</h2>
+  <div class="vote step" data-s="1"><div class="opt bad"><span class="l">A</span>Vou a pé até a cabine. É rapidinho.</div><div class="opt good"><span class="l">B</span>Chamo no rádio e espero a máquina parar.</div></div>
+  <p class="hand step" data-s="1">✋ Levante a mão: A ou B?</p>
+  <p class="answer step" data-s="2">De dentro da cabine, quem está a pé quase não aparece. Rádio, máquina parada e olho no olho.</p>
+  <template class="notes"><p>Pergunte a um operador de colhedora ou de transbordo o que ele enxerga do lado da máquina à noite.</p></template>
+</section>
+
+<section class="slide scene" data-bg="hatch" data-block="2">
+  <div class="ph r" style="background-image:url(img/estrada.jpg)"></div>
+  <div class="clock">15:45 <span>Rodovia · caminhão carregado</span></div>
+  <h2>Você está dirigindo. O celular vibra: uma mensagem marcada como urgente.</h2>
+  <div class="vote step" data-s="1"><div class="opt good"><span class="l">A</span>Só leio quando estiver parado em local seguro.</div><div class="opt bad"><span class="l">B</span>Dou uma olhada rápida, a pista está livre.</div></div>
+  <p class="hand step" data-s="1">✋ Levante a mão: A ou B?</p>
+  <p class="answer step" data-s="2">A 60 km/h, 3 segundos olhando o celular são cerca de 50 metros sem ninguém dirigindo.</p>
+  <template class="notes"><p>Conta: 60 km/h ≈ 16,7 m por segundo; 3 segundos ≈ 50 m. Peça para imaginarem 50 metros: mais ou menos o comprimento de dois treminhões.</p></template>
+</section>
+
+<section class="slide scene" data-bg="hatch" data-block="2">
+  <div class="ph r" style="background-image:url(img/ampulheta.jpg)"></div>
+  <div class="clock">17:40 <span>Fim do turno</span></div>
+  <h2>Faltam 15 minutos para o ônibus. Você percebe que a proteção de um equipamento está solta.</h2>
+  <div class="vote step" data-s="1"><div class="opt bad"><span class="l">A</span>Amanhã alguém vê isso.</div><div class="opt good"><span class="l">B</span>Aviso, sinalizo e registro antes de sair.</div></div>
+  <p class="hand step" data-s="1">✋ Levante a mão: A ou B?</p>
+  <p class="answer step" data-s="2">Quem pegar o equipamento amanhã pode não perceber. Quem viu é quem avisa.</p>
+  <template class="notes"><p>Feche as situações: "Sete decisões pequenas. Nenhuma heroica. É assim que um dia termina bem, ou não."</p></template>
+</section>
+
+<section class="slide" data-bg="hatch" data-block="2">
+  <div class="ph r" style="background-image:url(img/mecanico.jpg);background-position:center 30%"></div>
+  <div class="eyebrow">Quando o risco vira rotina</div>
+  <h2 style="margin-top:18px;max-width:1150px">Por que a gente escolhe o atalho?</h2>
+  <div class="rows q">
+    <div class="row step" data-s="1"><span class="k">confiança</span><span class="quote">“Faço isso há 20 anos e nunca aconteceu nada.”</span></div>
+    <div class="row step" data-s="2"><span class="k">improviso</span><span class="quote">“É só dessa vez.”</span></div>
+    <div class="row step" data-s="3"><span class="k">costume</span><span class="quote">“Todo mundo faz assim.”</span></div>
+  </div>
+  <p class="answer step" data-s="4" style="margin-top:44px">Nunca ter acontecido não prova que é seguro. Pode significar apenas que <b class="lime">ainda não aconteceu</b>.</p>
+  <template class="notes"><p><b>2 min · fecho do bloco 2.</b> Três comportamentos que transformam o risco em rotina:</p><p>→ Excesso de confiança: a experiência é um patrimônio, mas não é garantia de invulnerabilidade. → Improvisação: muitos desvios começam com a vontade de resolver rápido um problema. → Naturalização: o fato de uma prática ser comum não significa que ela seja segura.</p><p>→ Leia devagar a última frase e faça uma pausa antes do bloco 3.</p></template>
+</section>
+
+<!-- ============ BLOCO 3 ============ -->
+
+<section class="slide chapter" data-bg="particles" data-block="3">
+  <div class="eyebrow">Bloco 3</div>
+  <h1 style="margin-top:20px">Liderança que inspira</h1>
+  <p class="lead">Cada decisão daquele dia alguém estava vendo.</p>
+  <div class="num">3</div>
+  <template class="notes"><p><b>Bloco 3 · 15 min.</b></p></template>
+</section>
+
+<section class="slide" data-bg="hatch" data-block="3">
+  <div class="eyebrow">Curva de Bradley · DuPont</div>
+  <h2 style="margin-top:18px">Quatro estágios de uma cultura de segurança</h2>
+  <svg viewBox="0 0 1380 520" style="width:1380px;height:520px;margin-top:20px" aria-label="Curva descendente de acidentes em quatro estágios: reativa, dependente, independente e interdependente">
+    <g>
+      <rect class="bzr" data-z="1" x="40" y="10" width="320" height="420" rx="14" fill="#c2ff6b" opacity="0"/>
+      <rect class="bzr" data-z="2" x="370" y="10" width="320" height="420" rx="14" fill="#c2ff6b" opacity="0"/>
+      <rect class="bzr" data-z="3" x="700" y="10" width="320" height="420" rx="14" fill="#c2ff6b" opacity="0"/>
+      <rect class="bzr" data-z="4" x="1030" y="10" width="320" height="420" rx="14" fill="#c2ff6b" opacity="0"/>
+    </g>
+    <line x1="40" y1="430" x2="1350" y2="430" stroke="#4a5562" stroke-width="3"/>
+    <path d="M60 40 C 300 60, 420 260, 700 320 S 1150 405, 1340 412" fill="none" stroke="#ff9a4a" stroke-width="8" stroke-linecap="round"/>
+    <text x="70" y="30" fill="#aab2aa" font-family="JetBrains Mono, monospace" font-size="22">acidentes</text>
+    <g font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="34" fill="#f2f5ec">
+      <text x="200" y="480" text-anchor="middle">Reativa</text><text x="530" y="480" text-anchor="middle">Dependente</text><text x="860" y="480" text-anchor="middle">Independente</text><text x="1190" y="480" text-anchor="middle">Interdependente</text>
+    </g>
+    <g font-family="Open Sans, Arial, sans-serif" font-size="24" fill="#aab2aa">
+      <text x="200" y="512" text-anchor="middle">"acidente acontece"</text><text x="530" y="512" text-anchor="middle">"faço porque cobram"</text><text x="860" y="512" text-anchor="middle">"faço porque eu quero"</text><text x="1190" y="512" text-anchor="middle">"cuido de mim e do outro"</text>
+    </g>
+  </svg>
+  <p class="answer step" data-s="5" style="margin-top:8px">Onde nós estamos hoje? Levante a mão em um dos quatro.</p>
+  <span class="step" data-s="1"></span><span class="step" data-s="2"></span><span class="step" data-s="3"></span><span class="step" data-s="4"></span>
+  <template class="notes"><p><b>4 min.</b> Avance um estágio por vez (→ acende cada coluna). No final, faça a votação: leia os quatro nomes e peça mãos.</p><p>Ponto central: no último estágio, a segurança não depende de alguém olhando. Cada um cuida de si e do colega. É aí que o número de acidentes cai de verdade.</p></template>
+</section>
+
+<section class="slide lider" data-id="lider" data-bg="dark" data-block="3">
+  <canvas id="peoplecv" width="1600" height="900"></canvas>
+  <div class="eyebrow" style="position:relative">Reparem no cartaz desta SIPAT</div>
+  <h2 style="margin-top:18px">Quem é o líder aqui?</h2>
+  <p class="lead step" data-s="1" style="margin-top:20px">Uma atitude acende.</p>
+  <p class="lead step" data-s="2" style="color:var(--lime)">E a luz se espalha.</p>
+  <p class="lead step" data-s="3" style="color:var(--ink);font-size:44px;font-weight:700;position:absolute;left:110px;bottom:90px">Liderança é atitude. Não é lugar.</p>
+  <template class="notes"><p><b>3 min.</b> Primeiro mostre todo mundo apagado e pergunte: "Quem é o líder aqui?" Espere respostas.</p><p>→ Uma pessoa acende no meio do grupo: "Ela não está na frente nem acima de ninguém. Fez a coisa certa."</p><p>→ A luz se espalha: "Quem está do lado aprende olhando. Uma atitude vira o jeito da equipe trabalhar."</p></template>
+</section>
+
+<section class="slide" data-bg="dark" data-block="3">
+  <div class="ph r" style="background-image:url(img/equipe.jpg);opacity:.26"></div>
+  <div class="eyebrow">Encarregados, supervisores, gestores</div>
+  <h2 style="margin-top:18px;max-width:1250px">E quem coordena equipe tem quatro compromissos</h2>
+  <div class="timeline" style="margin-top:56px">
+    <div class="tl step" data-s="1"><span class="t">exemplo</span><h3>Dar exemplo</h3><p>Não exigir o que a própria liderança não pratica.</p></div>
+    <div class="tl step" data-s="2"><span class="t">orientação</span><h3>Orientar</h3><p>Garantir que todos entendam os riscos e os procedimentos.</p></div>
+    <div class="tl step" data-s="3"><span class="t">escuta</span><h3>Ouvir</h3><p>Valorizar quem avisa de um risco, sem constranger nem retaliar.</p></div>
+    <div class="tl step" data-s="4"><span class="t">ação</span><h3>Agir</h3><p>Corrigir problemas e dar retorno, não só cobrar resultado.</p></div>
+  </div>
+  <p class="answer step" data-s="5" style="margin-top:48px">A cultura de segurança aparece nas decisões que os líderes tomam <b class="lime">quando estão sob pressão</b>.</p>
+  <template class="notes"><p><b>3 min.</b> "Liderança é atitude de todos. Mas quem tem cargo de liderança tem compromissos a mais."</p><p>"Não adianta um gestor cobrar segurança na reunião e, depois, pressionar a equipe para executar uma atividade sem as condições necessárias. A mensagem que vale não é apenas o que falamos. É o que fazemos quando precisamos escolher entre o resultado imediato e a segurança."</p><p>No "Ouvir", reforce a segurança psicológica: não basta pedir que as pessoas falem, é preciso mostrar que a comunicação gera ação.</p></template>
+</section>
+
+<section class="slide vs" data-bg="hatch" data-block="3">
+  <div class="eyebrow">Produção e resultado</div>
+  <h2 style="margin-top:18px">Produzir mais não é produzir melhor</h2>
+  <div class="grid2">
+    <div class="card more step" data-s="1"><span class="big">mais</span><ul><li>Toneladas a qualquer custo</li><li>Pressa, atalho e improviso</li><li>Gente exposta a risco desnecessário</li></ul></div>
+    <div class="card step" data-s="2"><span class="big">melhor</span><ul><li>Operação organizada e previsível</li><li>Planejamento que respeita as pessoas</li><li>Resultado que se sustenta</li></ul></div>
+  </div>
+  <p class="answer step" data-s="3">Não dá para comemorar uma meta batida se, para bater, alguém foi colocado em risco.</p>
+  <template class="notes"><p><b>2 min.</b> "Na agricultura trabalhamos com metas, planejamento, produtividade, eficiência e custos. Precisamos colher e alimentar a indústria. Mas existe uma diferença muito grande entre produzir mais e produzir melhor."</p><p>"Uma operação que entrega toneladas, mas expõe pessoas a riscos desnecessários, não é eficiente. Segurança e produtividade não são adversárias: uma operação segura tende a ser mais organizada, previsível e sustentável."</p></template>
+</section>
+
+<section class="slide" data-bg="hatch" data-block="3">
+  <div class="ph r" style="background-image:url(img/parar.jpg);opacity:.4"></div>
+  <svg class="stopsign" viewBox="0 0 200 200" role="img" aria-label="Placa de PARE">
+    <polygon points="58.6,0 141.4,0 200,58.6 200,141.4 141.4,200 58.6,200 0,141.4 0,58.6" fill="#ffffff"/>
+    <polygon points="61.5,7 138.5,7 193,61.5 193,138.5 138.5,193 61.5,193 7,138.5 7,61.5" fill="#d93a2b"/>
+    <polygon points="64,13 136,13 187,64 187,136 136,187 64,187 13,136 13,64" fill="none" stroke="#ffffff" stroke-width="3"/>
+    <text x="100" y="120" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="900" font-size="54" fill="#ffffff">PARE</text>
+  </svg>
+  <div class="eyebrow">NR-31 · atualizada pela Portaria MTE nº 342/2024</div>
+  <h2 style="margin-top:18px">Parar também é regra</h2>
+  <div class="rows" style="gap:22px;margin-top:46px;max-width:1120px">
+    <div class="row step" data-s="1"><span class="k">direito</span><span>O trabalhador pode <b class="lime">interromper a atividade</b> quando identificar grave e iminente risco, avisando na hora.</span></div>
+    <div class="row step" data-s="2"><span class="k">retorno</span><span>A volta ao trabalho não pode ser exigida enquanto as medidas de correção não forem tomadas.</span></div>
+    <div class="row step" data-s="3"><span class="k">proteção</span><span>Quem interrompe fica protegido de consequências injustificadas.</span></div>
+  </div>
+  <p class="answer step" data-s="4" style="margin-top:36px">Uma máquina pode parar e voltar a trabalhar. <b class="orange">Uma vida perdida não tem retorno.</b></p>
+  <p class="src">Fonte: Portaria MTE nº 342/2024, que alinhou a NR-31 às mudanças da NR-01 sobre interrupção de atividades.</p>
+  <template class="notes"><p><b>3 min.</b> Ligue com a pirâmide e com a situação das 11h: parar não é atrapalhar a operação, está previsto na norma do trabalho rural.</p><p>"Se uma máquina apresenta uma condição que coloca o operador em risco, parar não é perder produção. É evitar que um problema operacional se transforme em algo muito maior."</p><p>→ Última frase devagar, com pausa.</p></template>
+</section>
+
+<!-- ============ BLOCO 4 ============ -->
+
+<section class="slide chapter" data-bg="particles" data-block="4">
+  <div class="eyebrow">Bloco 4</div>
+  <h1 style="margin-top:20px">Segurança que transforma</h1>
+  <p class="lead">Para terminar, uma história.</p>
+  <div class="num">4</div>
+  <template class="notes"><p><b>Bloco 4 · discurso, cerca de 10 min.</b> Daqui em diante cada slide acompanha uma parte do discurso. As notas trazem o texto completo de cada parte. Avance só nas marcas → indicadas.</p></template>
+</section>
+
+<section class="slide speech" data-bg="dark" data-block="4">
+  <div class="eyebrow">fim de tarde · oficina</div>
+  <h1 style="margin-top:20px">O Zé.</h1>
+  <p class="big orange step" data-s="1" style="font-size:220px;position:absolute;right:140px;bottom:130px">Tac.</p>
+  <template class="notes"><p><b>PARTE 1 · ≈ 1min45</b></p>
+<p>Eu quero contar uma história. Vou chamar o personagem dela de Zé. Pode ser qualquer um de nós.</p>
+<p>O Zé é mecânico. Fim de tarde na oficina, ele está terminando um serviço e falta só uma coisa: cortar um parafuso que travou. Coisa simples. Ele pega a esmerilhadeira, coloca na tomada e já está com ela na mão quando percebe: os óculos de proteção ficaram no armário, lá do outro lado do galpão.</p>
+<p>Aí vem o pensamento que todo mundo aqui conhece: “é só um cortezinho, dez segundos, não precisa”. Ele já viu gente fazer assim. Talvez ele mesmo já tenha feito. E nunca aconteceu nada. (pausa)</p>
+<p>Mas o Zé larga a esmerilhadeira em cima da bancada, atravessa o galpão, pega os óculos e o protetor facial, volta e coloca tudo. Trinta segundos. Liga a máquina, encosta o disco no parafuso e, no meio do corte, o disco trinca. Um pedaço sai voando e bate em cheio na viseira, na altura do olho dele. <b>→ Tac.</b> (pausa)</p>
+<p>O Zé fica parado uns segundos. Tira a viseira, olha o risco no acrílico, respira fundo. Ninguém viu. Ninguém bateu palma. Aquilo não apareceu em relatório nenhum. No fim do dia, ele pegou a marmita vazia, entrou no ônibus e foi para casa. E olhou para os filhos com os dois olhos.</p></template>
+</section>
+
+<section class="slide speech" data-bg="hatch" data-block="4">
+  <svg viewBox="0 0 250 190" style="width:300px" aria-label="Grupo de cinco pessoas, a do centro iluminada">
+    <g fill="#3d4651" stroke="#a6a6a6" stroke-width="3"><circle cx="34" cy="62" r="17"/><rect x="12" y="84" width="44" height="100" rx="14"/><circle cx="78" cy="54" r="17"/><rect x="56" y="76" width="44" height="108" rx="14"/><circle cx="172" cy="54" r="17"/><rect x="150" y="76" width="44" height="108" rx="14"/><circle cx="216" cy="62" r="17"/><rect x="194" y="84" width="44" height="100" rx="14"/></g>
+    <g fill="#c2ff6b"><circle cx="125" cy="48" r="20"/><rect x="99" y="74" width="52" height="116" rx="16"/></g>
+    <g stroke="#c2ff6b" stroke-width="6" stroke-linecap="round"><line x1="125" y1="4" x2="125" y2="16"/><line x1="96" y1="14" x2="104" y2="24"/><line x1="154" y1="14" x2="146" y2="24"/></g>
+  </svg>
+  <h2 style="margin-top:40px;font-size:96px">Liderança é atitude.</h2>
+  <template class="notes"><p><b>PARTE 2 · ≈ 1min</b></p>
+<p>O tema desta SIPAT é “Liderança que inspira, segurança que transforma”. Reparem no cartaz. Tem um grupo de pessoas, e uma delas está iluminada. Ela não está na frente de ninguém, nem acima de ninguém. Está no meio do grupo, lado a lado. E mesmo assim é ela que a gente enxerga primeiro.</p>
+<p>Naquela tarde na oficina, o Zé foi essa pessoa iluminada. Porque liderança não tem a ver com o lugar onde a pessoa está. Tem a ver com o que ela faz quando a pressa pede o contrário. Na colheita, no caminhão, no trator, na oficina, no escritório, todo mundo aqui tem um momento como o do Zé. Todo dia. E todo mundo aqui é exemplo para alguém, querendo ou não.</p></template>
+</section>
+
+<section class="slide speech" data-bg="hatch" data-block="4">
+  <h2 style="font-size:96px">A gente aprende <span class="lime">olhando</span>.</h2>
+  <p class="lead step" data-s="1" style="margin-top:36px;font-size:40px">O que a gente faz na frente do outro vira regra.<br>O que a gente deixa passar também.</p>
+  <template class="notes"><p><b>PARTE 3 · ≈ 1min</b></p>
+<p>Pensem em como vocês aprenderam o próprio trabalho. Quase ninguém aprendeu lendo procedimento. A gente aprendeu olhando. Olhando o colega mais experiente: como ele subia na máquina, como fazia a inspeção, como reagia quando dava problema. A gente copia o que vê muito mais do que o que ouve.</p>
+<p>Agora imaginem que, naquela tarde, tinha um mecânico novato na bancada do lado, olhando o Zé. Se o Zé tivesse cortado sem óculos, o novato ia aprender que “para um cortezinho não precisa”. Mas ele viu o Zé largar a ferramenta e atravessar o galpão para buscar o EPI. E depois viu o risco na viseira. Ele nunca mais vai esquecer aquilo.</p>
+<p><b>→</b> Inspirar é isso. Não é discurso bonito. É o exemplo repetido todo dia. O que a gente faz na frente do outro vira regra. E o que a gente deixa passar também vira regra.</p></template>
+</section>
+
+<section class="slide speech" data-bg="hatch" data-block="4">
+  <div style="display:flex;gap:80px;align-items:flex-end">
+    <div><p class="big" style="font-size:240px;color:var(--mute)">4</p><p class="lead">dias de SIPAT</p></div>
+    <div class="step" data-s="1"><p class="big lime" style="font-size:240px">365</p><p class="lead" style="color:var(--ink)">dias de segurança</p></div>
+  </div>
+  <template class="notes"><p><b>PARTE 4 · ≈ 1min</b></p>
+<p>E por que segurança transforma? Porque segurança de verdade não é campanha. Esta SIPAT dura quatro dias. <b>→</b> A segurança precisa durar os trezentos e sessenta e cinco. Ela não muda a empresa com uma palestra. Ela muda nas coisas pequenas que a gente repete até virar costume.</p>
+<p>É o checklist feito de verdade antes de ligar a máquina, e não marcado no automático. É o bloqueio feito antes de pôr a mão no equipamento na oficina. É respeitar a distância de máquina em movimento e o ponto cego do caminhão. É o cinto. É avisar que está cansado de madrugada, em vez de esconder. Nada disso é heroico. Mas quando todo mundo faz, a cultura muda. E quando a cultura muda, ninguém mais precisa ser lembrado. Isso é transformar.</p></template>
+</section>
+
+<section class="slide speech" data-bg="hatch" data-block="4">
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h1 class="step" data-s="1" style="font-size:170px">Parar.</h1>
+    <h1 class="step" data-s="2" style="font-size:170px">Falar.</h1>
+    <h1 class="step lime" data-s="3" style="font-size:170px">Cuidar.</h1>
+  </div>
+  <template class="notes"><p><b>PARTE 5 · ≈ 30s</b></p>
+<p>Então eu queria pedir a cada um de vocês três atitudes. <b>→</b> A primeira é parar. Quando alguma coisa não estiver certa, pare. Parar não é fraqueza nem preguiça. Parar é responsabilidade. <b>→</b> A segunda é falar. Viu um risco, fale. Viu o colega fazendo errado, fale com respeito, mas fale. O silêncio já causou muito acidente que uma frase teria evitado. <b>→</b> E a terceira é cuidar. Cuidar de si e cuidar do colega do lado. Porque aqui ninguém trabalha sozinho.</p></template>
+</section>
+
+<section class="slide speech" data-id="ring" data-bg="dark" data-block="4">
+  <div class="ringwrap">
+    <svg viewBox="0 0 440 440" aria-label="Contagem regressiva de 30 segundos">
+      <circle cx="220" cy="220" r="190" fill="none" stroke="#38414b" stroke-width="22"/>
+      <circle id="ringarc" cx="220" cy="220" r="190" fill="none" stroke="#c2ff6b" stroke-width="22" stroke-linecap="round" stroke-dasharray="1193.8" stroke-dashoffset="0" transform="rotate(-90 220 220)"/>
+      <text id="ringnum" x="220" y="252" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="900" font-size="120" fill="#f2f5ec">30</text>
+      <text x="220" y="300" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="24" fill="#aab2aa">segundos</text>
+    </svg>
+    <div class="ringlines">
+      <p style="color:var(--mute);font-size:40px">O que 30 segundos compraram?</p>
+      <p class="step" data-s="2">O olho dele.</p>
+      <p class="step" data-s="3">Ver os filhos crescerem.</p>
+      <p class="step lime" data-s="4">Todos os outros dias.</p>
+    </div>
+  </div>
+  <span class="step" data-s="1"></span>
+  <template class="notes"><p><b>PARTE 6 · ≈ 1min</b></p>
+<p>Eu volto para o Zé. Lembram? Ele gastou trinta segundos para atravessar o galpão e buscar os óculos. Trinta segundos. <b>→ (o anel começa a contar 30 segundos; deixe correr em silêncio uns instantes)</b> (pausa)</p>
+<p>Agora pensem no que esses trinta segundos compraram. <b>→</b> Compraram o olho dele. <b>→</b> Compraram poder ver os filhos crescerem. <b>→</b> Compraram todos os outros dias de trabalho que ele ainda vai ter pela frente.</p>
+<p>Não existe troca melhor do que essa. Nenhuma pressa vale mais do que uma vida.</p></template>
+</section>
+
+<section class="slide closing" data-bg="dark" data-block="4" style="justify-content:flex-end">
+  <div class="ph b" style="background-image:url(img/encerramento.jpg);background-position:center 30%;opacity:.42"></div>
+  <div class="eyebrow">De volta à primeira pergunta</div>
+  <h2 style="margin-top:18px;max-width:1200px">O que realmente importa quando termina o expediente?</h2>
+  <div style="display:flex;flex-direction:column;gap:6px;margin-top:34px">
+    <p class="step" data-s="1">A produção termina.</p>
+    <p class="step" data-s="2">Os resultados são contabilizados.</p>
+    <p class="step lime" data-s="3">Mas a vida precisa continuar.</p>
+  </div>
+  <template class="notes"><p><b>PARTE 7 · ≈ 1min</b></p>
+<p>Quero terminar retomando a pergunta que fiz no início. Quando saímos de casa pela manhã, existem pessoas que esperam nossa volta. Para quem trabalha no campo, para quem opera máquinas, para quem dirige caminhões, para quem trabalha na indústria e para todos que fazem a usina funcionar, existe algo que precisa estar acima de qualquer resultado. A nossa vida.</p>
+<p><b>→</b> A produção termina. <b>→</b> Os resultados são contabilizados. <b>→</b> Mas a vida precisa continuar.</p></template>
+</section>
+
+<section class="slide" data-bg="dark" data-block="4" style="justify-content:flex-end">
+  <div class="ph b" style="background-image:url(img/compromisso.jpg);background-position:center 30%;opacity:.4"></div>
+  <div class="eyebrow">Compromisso da Superintendência Agrícola</div>
+  <p class="pledge"><span class="lime">“</span>Eu tenho responsabilidade sobre as decisões que tomamos e sobre as condições que oferecemos para o trabalho.<span class="lime">”</span></p>
+  <p class="lead step" data-s="1" style="margin-top:26px;color:var(--ink)">Mas cada liderança, cada encarregado, cada operador e cada trabalhador também tem um papel fundamental.</p>
+  <div class="sign">Cloves Oliveira · Superintendente Agrícola CRV-MG</div>
+  <template class="notes"><p><b>PARTE 8 · ≈ 1min</b> · O detalhe que dá credibilidade: assumir publicamente que a segurança também começa nas decisões da própria gestão.</p>
+<p>A empresa precisa produzir, precisa crescer, precisa alcançar seus objetivos. Mas precisamos fazer isso com responsabilidade, planejamento e respeito às pessoas. Eu, como superintendente agrícola, tenho responsabilidade sobre as decisões que tomamos e sobre as condições que oferecemos para o trabalho.</p>
+<p><b>→</b> Mas cada liderança, cada encarregado, cada operador e cada trabalhador também tem um papel fundamental.</p></template>
+</section>
+
+<section class="slide speech" data-bg="particles" data-block="4" style="padding-bottom:150px">
+  <p class="lead" style="font-size:44px;color:var(--ink)">Na próxima vez que a pressa disser “não precisa”…</p>
+  <h1 class="step lime" data-s="1" style="font-size:190px;margin-top:20px">sejam o Zé.</h1>
+  <p class="step" data-s="2" style="font-family:var(--display);font-weight:800;font-size:46px;line-height:1.2;margin-top:36px">Produzir é importante. <span class="lime">Voltar para casa é inegociável.</span></p>
+  <p class="step" data-s="3" style="font-family:var(--body);font-weight:700;font-size:30px;margin-top:26px;color:var(--mute)">LIDERANÇA QUE INSPIRA, SEGURANÇA QUE TRANSFORMA</p>
+  <div class="band"><img src="img/faixa-crv.jpg" alt="Segurança do Trabalho CRV, CRV Industrial, bandeiras do Brasil e de Minas Gerais"></div>
+  <template class="notes"><p><b>FECHAMENTO</b></p>
+<p>Então, quando vocês saírem deste auditório hoje, eu não quero que levem só uma frase bonita. Quero que levem uma decisão. Amanhã, diante de uma situação de risco, lembrem que nenhuma tarefa é tão urgente que não possa ser feita com segurança. Na próxima vez que a pressa disser “não precisa”, <b>→</b> sejam o Zé.</p>
+<p><b>→</b> Porque produzir é importante. Mas voltar para casa é inegociável.</p>
+<p><b>→</b> Liderança que inspira, segurança que transforma. Muito obrigado.</p></template>
+</section>
+
+<section class="slide" data-bg="particles" data-block="4">
+  <div class="ph f" style="background-image:url(img/maos.jpg)"></div>
+  <div class="eyebrow">Ao sair</div>
+  <h2 style="margin-top:18px">Mural do compromisso</h2>
+  <p class="lead" style="margin-top:30px;color:var(--ink);font-size:40px">Escreva em uma frase o que você vai fazer diferente a partir de amanhã. Assine e cole no mural da saída.</p>
+  <p class="lead step" data-s="1" style="margin-top:40px">Sugestão para começar a frase: <b class="lime">“Eu vou ser o Zé quando…”</b></p>
+  <template class="notes"><p><b>Opcional · 2 min.</b> Precisa de papéis adesivos, canetas e um painel na porta do auditório. Combine com a equipe de Segurança do Trabalho, que conduz a gamificação no dia 24, para usar o mural depois.</p><p>Se quiser fechar com impacto: volte ao slide do contador (9) e mostre quanto o número cresceu durante a apresentação.</p></template>
+</section>
+
+<div id="hud">
+  <span id="blk">ABERTURA</span>
+  <div id="prog"></div>
+  <span id="pos">1/1</span>
+  <span id="tmr">00:00</span>
+  <button type="button" id="bN" aria-label="Notas do apresentador">Notas</button>
+  <button type="button" id="bF" aria-label="Tela cheia">Tela cheia</button>
+</div>
+</div>
+<div id="notes" hidden><div class="nh" id="nhead">Notas</div><div id="nbody"></div></div>
+
+<script>
+(function(){
+const stage=document.getElementById('stage');
+const slides=[...document.querySelectorAll('.slide')];
+const blocks=['ABERTURA','BLOCO 1 · O TAMANHO DO PROBLEMA','BLOCO 2 · UM DIA DE TRABALHO','BLOCO 3 · LIDERANÇA QUE INSPIRA','BLOCO 4 · SEGURANÇA QUE TRANSFORMA'];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let cur=0, st=0, t0=null;
+const maxS=s=>Math.max(0,...[...s.querySelectorAll('.step')].map(e=>+e.dataset.s||0));
+const fmt=n=>n.toLocaleString('pt-BR');
+const mmss=sec=>String(Math.floor(sec/60)).padStart(2,'0')+':'+String(Math.floor(sec%60)).padStart(2,'0');
+
+function fit(){const w=document.body.clientWidth||innerWidth,h=document.body.clientHeight||innerHeight;const s=Math.min(w/1600,h/900);stage.style.transform=`translate(-50%,-50%) scale(${s})`;}
+addEventListener('resize',fit);fit();
+
+/* progresso */
+const prog=document.getElementById('prog');
+for(let b=0;b<5;b++){const i=document.createElement('i');i.appendChild(document.createElement('b'));prog.appendChild(i);}
+function hud(){
+  const s=slides[cur],b=+s.dataset.block;
+  document.getElementById('blk').textContent=blocks[b];
+  document.getElementById('pos').textContent=(cur+1)+'/'+slides.length;
+  [...prog.children].forEach((el,k)=>{const idx=slides.map((x,j)=>+x.dataset.block===k?j:-1).filter(j=>j>=0);
+    const done=idx.filter(j=>j<=cur).length;el.firstChild.style.width=(idx.length?done/idx.length*100:0)+'%';});
+  const n=s.querySelector('template.notes');
+  document.getElementById('nhead').textContent='Notas · slide '+(cur+1)+' · '+blocks[b];
+  document.getElementById('nbody').innerHTML=n?n.innerHTML:'<p>Sem notas.</p>';
+}
+
+/* ganchos */
+const hooks={
+  counter:{enter(){}},
+  deaths:{enter(s){countUp(s.querySelector('#dth'),32000,1800)}},
+  lider:{step(n){people.step(n)},enter(){people.step(0)}},
+  ring:{step(n){if(n>=1)ring.start();else ring.reset()},enter(){ring.reset()}}
+};
+function countUp(el,to,ms){if(reduce){el.textContent=fmt(to);return}const a=performance.now();
+  (function f(t){const p=Math.min(1,(t-a)/ms),e=1-Math.pow(1-p,3);el.textContent=fmt(Math.round(to*e));if(p<1)requestAnimationFrame(f)})(a);}
+
+function show(i,s,dir){
+  const prev=slides[cur];
+  if(i!==cur){prev.classList.remove('on');}
+  cur=i;st=s;const sl=slides[cur];sl.classList.add('on');
+  sl.querySelectorAll('.step').forEach(e=>e.classList.toggle('in',(+e.dataset.s||0)<=st));
+  sl.querySelectorAll('.bzr').forEach(r=>r.setAttribute('opacity',(+r.dataset.z)===st&&st<=4?'.16':((+r.dataset.z)<st?'.05':'0')));
+  sl.querySelectorAll('.vote').forEach(v=>v.parentElement.classList.toggle('reveal',st>=2));
+  const h=hooks[sl.dataset.id];
+  if(h){if(dir==='enter'&&h.enter)h.enter(sl);if(h.step)h.step(st);}
+  bgMode(sl.dataset.bg||'hatch');
+  hud();
+  try{history.replaceState(null,'','#slide-'+(cur+1))}catch(e){}
+}
+function next(){
+  if(cur===0&&t0===null)t0=performance.now();
+  const m=maxS(slides[cur]);
+  if(st<m)show(cur,st+1,'step');else if(cur<slides.length-1)show(cur+1,0,'enter');
+}
+function prev(){
+  if(st>0)show(cur,st-1,'step');else if(cur>0){const p=cur-1;show(p,maxS(slides[p]),'enter');}
+}
+addEventListener('keydown',e=>{
+  if(['ArrowRight','PageDown',' ','Enter'].includes(e.key)){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){e.preventDefault();prev();}
+  else if(e.key==='Home'){show(0,0,'enter')}
+  else if(e.key==='End'){show(slides.length-1,0,'enter')}
+  else if(e.key==='f'||e.key==='F'){fs()}
+  else if(e.key==='n'||e.key==='N'){notes()}
+  wake();
+});
+let px=null;
+stage.addEventListener('pointerdown',e=>{px=e.clientX});
+stage.addEventListener('pointerup',e=>{if(e.target.closest('#hud'))return;const dx=e.clientX-(px??e.clientX);if(dx>60)prev();else next();px=null;});
+function fs(){const d=document.documentElement;try{if(!document.fullscreenElement)d.requestFullscreen&&d.requestFullscreen().catch(()=>{});else document.exitFullscreen()}catch(e){}}
+function notes(){const n=document.getElementById('notes');n.hidden=!n.hidden;}
+document.getElementById('bF').addEventListener('click',e=>{e.stopPropagation();fs()});
+document.getElementById('bN').addEventListener('click',e=>{e.stopPropagation();notes()});
+document.getElementById('hud').addEventListener('pointerup',e=>e.stopPropagation());
+let idle;function wake(){const h=document.getElementById('hud');h.classList.remove('hide');clearTimeout(idle);idle=setTimeout(()=>h.classList.add('hide'),3500);}
+addEventListener('pointermove',wake);wake();
+
+/* relógio e contador */
+const RATE=8.8e6/(12*365.25*86400);
+setInterval(()=>{
+  const el=t0===null?0:(performance.now()-t0)/1000;
+  document.getElementById('tmr').textContent=mmss(el);
+  document.getElementById('cnt').textContent=fmt(Math.floor(el*RATE));
+  document.getElementById('cntclock').textContent='em '+mmss(el)+' de apresentação · cerca de 1,4 por minuto';
+},250);
+
+/* anel 30 s */
+const ring=(()=>{const arc=document.getElementById('ringarc'),num=document.getElementById('ringnum'),C=1193.8;let a=null,raf;
+  function reset(){a=null;cancelAnimationFrame(raf);arc.setAttribute('stroke-dashoffset','0');num.textContent='30';}
+  function start(){if(a!==null)return;a=performance.now();(function f(t){const el=Math.min(30,(t-a)/1000);
+    arc.setAttribute('stroke-dashoffset',String(C*el/30));num.textContent=String(Math.ceil(30-el));if(el<30)raf=requestAnimationFrame(f)})(a);}
+  return {reset,start};})();
+
+/* pessoas que acendem */
+const people=(()=>{const cv=document.getElementById('peoplecv'),c=cv.getContext('2d');const P=[];
+  const cols=13,rows=3,sx=112,sy=150,ox=800-6*sx,oy=520;
+  for(let r=0;r<rows;r++)for(let k=0;k<cols;k++)P.push({x:ox+k*sx+(r%2?sx/2:0),y:oy+r*sy,lit:0});
+  const src=P[cols+6];let mode=0,t1=0,raf=null;
+  function lerp(a,b,t){return a+(b-a)*t}
+  function col(t){const r=Math.round(lerp(0x4a,0xc2,t)),g=Math.round(lerp(0x55,0xff,t)),b=Math.round(lerp(0x62,0x6b,t));return `rgb(${r},${g},${b})`}
+  function person(p){const t=p.lit;c.fillStyle=col(t);c.beginPath();c.arc(p.x,p.y-58,17,0,7);c.fill();
+    c.beginPath();c.roundRect?c.roundRect(p.x-22,p.y-34,44,84,14):c.rect(p.x-22,p.y-34,44,84);c.fill();
+    if(t>.95&&p===src){c.strokeStyle='#c2ff6b';c.lineWidth=6;c.lineCap='round';[[0,-104,0,-90],[-28,-96,-20,-84],[28,-96,20,-84]].forEach(l=>{c.beginPath();c.moveTo(p.x+l[0],p.y+l[1]);c.lineTo(p.x+l[2],p.y+l[3]);c.stroke()});}}
+  function draw(t){c.clearRect(0,0,1600,900);
+    P.forEach(p=>{let target=0;if(mode>=1&&p===src)target=1;
+      if(mode>=2){const d=Math.hypot(p.x-src.x,p.y-src.y),R=(t-t1)/1000*420;target=d<R?1:(p===src?1:0)}
+      p.lit+= (target-p.lit)*(reduce?1:.08);person(p)});
+    if(mode>=1){const g=c.createRadialGradient(src.x,src.y-20,10,src.x,src.y-20,mode>=2?Math.min(900,(t-t1)/1000*420+120):160);
+      g.addColorStop(0,'rgba(194,255,107,.18)');g.addColorStop(1,'rgba(194,255,107,0)');c.fillStyle=g;c.fillRect(0,0,1600,900);}
+    raf=requestAnimationFrame(draw)}
+  function step(n){if(n>=2&&mode<2)t1=performance.now();mode=n;if(!raf)raf=requestAnimationFrame(draw)}
+  return {step};})();
+
+/* fundo */
+const bg=document.getElementById('bg'),g=bg.getContext('2d');
+const dpr=Math.min(2,devicePixelRatio||1);bg.width=1600*dpr;bg.height=900*dpr;g.scale(dpr,dpr);
+const pts=Array.from({length:70},()=>({x:Math.random()*1600,y:Math.random()*900,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35}));
+let M={hatch:true,dots:.5,color:'194,255,107',speed:1};let off=0;
+function bgMode(m){M={dark:{hatch:false,dots:.18,color:'194,255,107',speed:.5},hatch:{hatch:true,dots:.35,color:'194,255,107',speed:1},
+  particles:{hatch:false,dots:.8,color:'194,255,107',speed:1.3},alert:{hatch:false,dots:.75,color:'255,154,74',speed:2.2}}[m]||M;}
+function frame(){
+  g.fillStyle='#262c32';g.fillRect(0,0,1600,900);
+  if(M.hatch){g.save();g.beginPath();g.moveTo(560,0);g.lineTo(1600,0);g.lineTo(1600,560);g.lineTo(1100,560);g.closePath();g.clip();
+    g.strokeStyle='rgba(255,255,255,.10)';g.lineWidth=2;off=(off+(reduce?0:.25))%26;
+    for(let x=-900;x<1700;x+=26){g.beginPath();g.moveTo(x+off+900,0);g.lineTo(x+off,900);g.stroke();}g.restore();}
+  pts.forEach(p=>{if(!reduce){p.x+=p.vx*M.speed;p.y+=p.vy*M.speed;}if(p.x<0)p.x+=1600;if(p.x>1600)p.x-=1600;if(p.y<0)p.y+=900;if(p.y>900)p.y-=900;});
+  for(let i=0;i<pts.length;i++){const a=pts[i];g.fillStyle=`rgba(${M.color},${M.dots})`;g.beginPath();g.arc(a.x,a.y,2.2,0,7);g.fill();
+    for(let j=i+1;j<pts.length;j++){const b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<150){g.strokeStyle=`rgba(${M.color},${(1-d/150)*M.dots*.35})`;g.lineWidth=1;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();}}}
+  if(!reduce)requestAnimationFrame(frame);
+}
+frame();
+
+/* boot */
+const dots=(t,ok)=>ok?('> '+t+' ').padEnd(44,'.')+' ':'> '+t;
+const lines=[[dots('CRV Industrial · Unidade Capinópolis'),''],[dots('Carregando módulo LIDERANÇA',1),'OK'],[dots('Carregando módulo SEGURANÇA',1),'OK'],[dots('Carregando módulo VOLTAR PARA CASA',1),'OK'],[dots('Verificando EPI',1),'OK'],[dots('Conectando a equipe',1),'OK'],[dots('Sistema pronto. Bem-vindos à VIII SIPAT/SIPATR'),'']];
+const log=document.getElementById('bootlog'),bar=document.getElementById('bootbar'),go=document.getElementById('bootgo');
+function renderBoot(n){log.innerHTML=lines.slice(0,n).map(l=>l[0]+(l[1]?'<b>'+l[1]+'</b>':'')).join('\n');bar.style.width=(n/lines.length*100)+'%';if(n>=lines.length)go.classList.add('show');}
+if(reduce)renderBoot(lines.length);else{let n=0;const it=setInterval(()=>{n++;renderBoot(n);if(n>=lines.length)clearInterval(it)},650);}
+
+/* preserva o slide atual quando a página é atualizada */
+try{window.claude?.hot?.snapshot?.(()=>({cur,st,el:t0===null?null:(performance.now()-t0)/1000}))}catch(e){}
+function start(data){
+  if(data&&Number.isInteger(data.cur)&&data.cur>0&&data.cur<slides.length){
+    if(typeof data.el==='number')t0=performance.now()-data.el*1000;else t0=performance.now();
+    show(data.cur,Math.min(data.st||0,maxS(slides[data.cur])),'enter');return;
+  }
+  /* início pelo link */
+  const m=(location.hash||'').match(/^#slide-(\d+)$/);
+  if(m){const k=Math.min(slides.length,Math.max(1,+m[1]))-1;if(k>0){t0=performance.now();show(k,0,'enter');}else hud();}else{bgMode('dark');hud();}
+}
+const hot=window.claude?.hot;
+if(hot&&hot.ready)hot.ready(start);else start(hot?.data??{});
+})();
+</script>
