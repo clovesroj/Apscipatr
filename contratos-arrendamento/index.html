@@ -1,0 +1,1162 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>Contratos de Arrendamento</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow+Semi+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: casca SIGA-MG (barra azul com chapa clara + menu lateral marinho) e telas em cartões, uma por item do menu. */
+:root{
+  --marca:#005282; --filete:#1A9760; --navy:#0B2A47; --navy-2:#12385C;
+  --bg:#F1F3F8; --card:#FFFFFF; --sunk:#F5F7FB; --line:#D9DFEA; --line-strong:#BEC8D8;
+  --ink:#151D2B; --grey:#586274; --muted:#7A8496;
+  --leaf:#1F63C6; --leaf-hover:#1A56B0; --leaf-strong:#14438F; --leaf-soft:#E3EDFC;
+  --ok:#22703A; --warn:#8A5A00; --bad:#B8392B; --info:#1864AB;
+  --ok-bg:rgba(46,133,64,.12); --warn-bg:rgba(201,138,18,.15); --bad-bg:rgba(184,57,43,.11); --info-bg:rgba(47,111,178,.10);
+  --th-bg:#EEF3FB; --th-ink:#0B2A47; --zebra:#F7F9FC; --hover:#EAF1FD;
+  /* faixas de vencimento (status): crítico, alto, atenção, monitorar, estável */
+  --f0:#C92A2A; --f1:#E8590C; --f2:#C98A00; --f3:#1F63C6; --f4:#2B8A3E;
+  --chart-grid:#E3E8F0; --chart-axis:#8A94A6; --ref:#0B2A47;
+  --sombra:0 6px 22px rgba(11,42,71,.10); --sombra-s:0 3px 12px rgba(11,42,71,.07);
+  --f-display:"Barlow Semi Condensed","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+  --f-nome:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --f-ui:Inter,"Segoe UI",system-ui,sans-serif;
+  --barra-h:77px; --menu-w:272px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1421; --card:#111C2C; --sunk:#0E1827; --line:#213048; --line-strong:#2E4161;
+  --ink:#E3E9F2; --grey:#9DAABD; --muted:#7D8BA0;
+  --leaf:#5AA2F5; --leaf-hover:#88B1E4; --leaf-strong:#A9C8EF; --leaf-soft:#16273F;
+  --ok:#40C057; --warn:#FAB005; --bad:#FF6B6B; --info:#4DABF7;
+  --ok-bg:rgba(91,194,125,.15); --warn-bg:rgba(227,169,63,.16); --bad-bg:rgba(242,120,108,.15); --info-bg:rgba(111,170,232,.14);
+  --th-bg:#16243A; --th-ink:#CFE0F5; --zebra:#0F1A2A; --hover:#17263D;
+  --f0:#FF6B6B; --f1:#FF922B; --f2:#FCC419; --f3:#4DABF7; --f4:#51CF66;
+  --chart-grid:#1E2C43; --chart-axis:#7D8BA0; --ref:#CFE0F5;
+  --sombra:0 6px 22px rgba(0,0,0,.35); --sombra-s:0 3px 12px rgba(0,0,0,.28);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1421; --card:#111C2C; --sunk:#0E1827; --line:#213048; --line-strong:#2E4161;
+  --ink:#E3E9F2; --grey:#9DAABD; --muted:#7D8BA0;
+  --leaf:#5AA2F5; --leaf-hover:#88B1E4; --leaf-strong:#A9C8EF; --leaf-soft:#16273F;
+  --ok:#40C057; --warn:#FAB005; --bad:#FF6B6B; --info:#4DABF7;
+  --ok-bg:rgba(91,194,125,.15); --warn-bg:rgba(227,169,63,.16); --bad-bg:rgba(242,120,108,.15); --info-bg:rgba(111,170,232,.14);
+  --th-bg:#16243A; --th-ink:#CFE0F5; --zebra:#0F1A2A; --hover:#17263D;
+  --f0:#FF6B6B; --f1:#FF922B; --f2:#FCC419; --f3:#4DABF7; --f4:#51CF66;
+  --chart-grid:#1E2C43; --chart-axis:#7D8BA0; --ref:#CFE0F5;
+  --sombra:0 6px 22px rgba(0,0,0,.35); --sombra-s:0 3px 12px rgba(0,0,0,.28);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-padding-top:calc(var(--barra-h) + 12px)}
+body{background:linear-gradient(180deg,color-mix(in srgb,#2f6fe0 5%,var(--bg)),var(--bg) 380px) fixed;background-color:var(--bg);
+  color:var(--ink);font:400 14px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--marca)}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--leaf)}
+:focus-visible{outline:2px solid var(--leaf);outline-offset:2px}
+.num,td.n,th.n{font-variant-numeric:tabular-nums}
+
+/* ============ Barra de cima (padrão SIGA-MG, chapa J3) ============ */
+.siga-barra{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;height:var(--barra-h);display:flex;align-items:center;gap:10px;
+  padding-right:max(14px,env(safe-area-inset-right,0px));padding-left:env(safe-area-inset-left,0px);
+  background:var(--marca);border-bottom:4px solid var(--filete);font-family:var(--f-ui);color:#fff}
+.siga-chapa{--corte:24px;position:relative;isolation:isolate;flex:none;align-self:stretch;display:flex;align-items:center;gap:4px;
+  padding:0 calc(var(--corte) + 14px) 0 10px;color:#0B2A47;clip-path:polygon(0 0,100% 0,calc(100% - var(--corte)) 100%,0 100%);
+  background:linear-gradient(90deg,#FFFFFF 0,#FFFFFF 30%,#CFEBDC 100%)}
+.siga-chapa button{display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:10px;background:transparent;color:#0B2A47;cursor:pointer}
+.siga-chapa button:hover{background:rgba(0,82,130,.10)}
+.siga-marca{display:flex;align-items:center;gap:9px;padding:4px 6px;text-decoration:none}
+.siga-marca svg{width:38px;height:39px;flex:none}
+.siga-marca-t{display:flex;flex-direction:column;gap:3px;line-height:1;white-space:nowrap}
+.siga-marca-t b{font:700 21px/1 Arial,Helvetica,sans-serif;letter-spacing:.2px;color:#005282}
+.siga-marca-t b i{font-style:normal;color:#1A9760}
+.siga-marca-t small{font-size:11px;font-weight:500;color:#3F5869}
+.siga-sistema{display:flex;flex-direction:column;min-width:0;line-height:1.1}
+.siga-sistema strong{font:600 22px/1.1 var(--f-nome);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.siga-sistema span{font-size:11.5px;color:#D6E8F2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.barra-esp{flex:1}
+.barra-preco{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:12px;border:1px solid #3A85AE;background:#0B6596;color:#fff;
+  text-decoration:none;cursor:pointer;line-height:1.15;white-space:nowrap}
+.barra-preco:hover{background:#0d70a6}
+.barra-preco small{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#D6E8F2}
+.barra-preco b{font:700 18px/1 var(--f-display)}
+.bico{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:#fff;cursor:pointer}
+.bico:hover{background:#0B6596}
+.barra-un{display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding-left:12px;border-left:1px solid #3A85AE;line-height:1.1}
+.barra-un b{font:700 15px/1 var(--f-nome);letter-spacing:.04em}
+.barra-un small{font-size:10.5px;color:rgba(255,255,255,.82);white-space:nowrap}
+
+/* ============ Menu lateral (padrão do Controle Agrícola) ============ */
+.casca{display:flex;align-items:flex-start;min-height:calc(100vh - var(--barra-h))}
+.siga-menu{position:sticky;top:calc(var(--barra-h) + env(safe-area-inset-top,0px));flex:none;width:var(--menu-w);height:calc(100vh - var(--barra-h) - env(safe-area-inset-top,0px));
+  overflow-y:auto;background:#0B2A47;color:#E6EEF7;font-family:var(--f-ui);padding:14px 12px 24px;padding-left:max(12px,env(safe-area-inset-left,0px))}
+.m-sec{margin:14px 6px 6px;font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--c)}
+.m-item{position:relative;display:flex;align-items:center;gap:11px;padding:7px 8px;border-radius:12px;color:#E6EEF7;text-decoration:none;cursor:pointer}
+.m-item:hover{background:#12385C}
+.m-item .q{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--c);color:#0B2A47}
+.m-item .q svg{width:18px;height:18px}
+.m-item .t{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+.m-item .t b{font-size:13.5px;font-weight:600}
+.m-item .t small{font-size:11px;color:#9FB3C8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-item.on{background:#12385C}
+.m-item.on::before{content:"";position:absolute;left:-2px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--c)}
+.m-item.on .q{box-shadow:0 0 0 2px #0B2A47,0 0 0 4px var(--c)}
+.m-rodape{margin:22px 6px 0;padding-top:14px;border-top:1px solid #23466B;font-size:11px;line-height:1.5;color:#9FB3C8}
+.m-rodape b{color:#E6EEF7}
+.veu{display:none}
+
+/* ============ Conteúdo ============ */
+main{flex:1;min-width:0;padding-block:22px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:901px){main{padding-left:28px;padding-right:max(28px,env(safe-area-inset-right,0px))}}
+.tela{display:none;max-width:1500px;margin:0 auto;flex-direction:column;gap:18px}
+.tela.on{display:flex;animation:sobe .45s cubic-bezier(.2,.8,.2,1) both}
+.cab-tela{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.cab-tela .sobre{font:700 11.5px/1 var(--f-ui);letter-spacing:.1em;text-transform:uppercase;color:var(--leaf)}
+.cab-tela h1{margin:6px 0 4px;font:700 clamp(1.6rem,2.6vw,2.15rem)/1.1 var(--f-display);text-wrap:balance}
+.cab-tela p{margin:0;color:var(--grey);max-width:78ch}
+.acoes{display:flex;flex-wrap:wrap;gap:8px}
+
+.btn{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line-strong);
+  background:var(--card);color:var(--ink);font:600 13px/1 var(--f-ui);cursor:pointer;text-decoration:none;white-space:nowrap;transition:transform .18s,box-shadow .18s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(0,0,0,.10)}
+.btn.pri{background:linear-gradient(120deg,#0B2A47,#1E4B9A);border-color:transparent;color:#fff}
+.btn svg{width:16px;height:16px}
+
+.cartao{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sombra);overflow:hidden;min-width:0}
+.cartao-cab{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;
+  background:linear-gradient(120deg,#0B2A47,#133d66 60%,#1E4B9A);color:#fff}
+.cartao-cab h2{margin:0;font:700 17px/1.2 var(--f-display);letter-spacing:.02em}
+.cartao-cab p{margin:2px 0 0;font-size:12px;color:#C9D9EC}
+.cartao-corpo{padding:16px 18px}
+.nota{margin:0;padding:10px 18px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+
+/* Indicadores (pcm-ind do SIGA) */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.kpi{--k:#1E4B9A;position:relative;overflow:hidden;isolation:isolate;border-radius:16px;padding:14px 16px 13px;
+  border:1.5px solid color-mix(in srgb,var(--k) 30%,transparent);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--k) 13%,var(--card)),color-mix(in srgb,var(--k) 3%,var(--card)));
+  box-shadow:0 3px 12px color-mix(in srgb,var(--k) 12%,transparent);transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s;
+  animation:sobe .5s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*55ms)}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--k);opacity:.85}
+.kpi:hover{transform:translateY(-4px);box-shadow:0 14px 28px color-mix(in srgb,var(--k) 24%,transparent)}
+.kpi[data-ir]{cursor:pointer}
+.kpi .ico{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;margin-bottom:6px;background:color-mix(in srgb,var(--k) 16%,transparent);color:var(--k)}
+.kpi .ico svg{width:19px;height:19px}
+.kpi .rot{font:800 10.5px/1.25 var(--f-ui);letter-spacing:.05em;text-transform:uppercase;color:color-mix(in srgb,var(--k) 70%,var(--ink))}
+.kpi .val{margin-top:4px;font:800 clamp(1.6rem,2.2vw,2.15rem)/1.05 var(--f-display);color:var(--k);font-variant-numeric:tabular-nums}
+.kpi .val small{font-size:.5em;font-weight:700;margin-left:3px;color:color-mix(in srgb,var(--k) 75%,var(--ink))}
+.kpi .sub{margin-top:4px;font-size:12px;color:var(--grey)}
+.kpi .deco{position:absolute;right:-8px;bottom:-14px;width:84px;height:84px;color:var(--k);opacity:.12;z-index:-1;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.kpi:hover .deco{transform:rotate(-8deg) scale(1.1)}
+:root{--k-azul:#1E4B9A;--k-verde:#1a9760;--k-roxo:#7048E8;--k-laranja:#D9480F;--k-teal:#0C8599;--k-anil:#364FC7;--k-vermelho:#C92A2A;--k-ouro:#B07A00}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--k-azul:#74A9F7;--k-verde:#3ECF8E;--k-roxo:#B197FC;--k-laranja:#FF922B;--k-teal:#3BC9DB;--k-anil:#91A7FF;--k-vermelho:#FF8787;--k-ouro:#FCC419}}
+:root[data-theme="dark"]{--k-azul:#74A9F7;--k-verde:#3ECF8E;--k-roxo:#B197FC;--k-laranja:#FF922B;--k-teal:#3BC9DB;--k-anil:#91A7FF;--k-vermelho:#FF8787;--k-ouro:#FCC419}
+
+/* Faixas */
+.faixas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.faixa{--t:var(--f3);position:relative;padding:14px 14px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);cursor:pointer;
+  box-shadow:var(--sombra-s);transition:transform .2s,border-color .2s}
+.faixa:hover{transform:translateY(-3px);border-color:var(--t)}
+.faixa .topo{display:flex;align-items:center;gap:8px;font:800 11px/1.2 var(--f-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+.faixa .topo i{flex:none;width:10px;height:10px;border-radius:3px;background:var(--t)}
+.faixa .anos{margin-top:2px;font-size:11.5px;color:var(--muted)}
+.faixa .ha{margin-top:8px;font:800 1.7rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.faixa .ha small{font-size:.5em;color:var(--grey);margin-left:3px}
+.faixa .bar{height:6px;margin:9px 0 7px;border-radius:6px;background:var(--sunk);overflow:hidden}
+.faixa .bar span{display:block;height:100%;border-radius:6px;background:var(--t)}
+.faixa .lin{display:flex;justify-content:space-between;gap:6px;font-size:12px;color:var(--grey)}
+.faixa .lin b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* Chips e selos */
+.chip{--t:var(--leaf);display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 10px;font:700 11px/1.5 var(--f-ui);white-space:nowrap;
+  color:color-mix(in srgb,var(--t) 82%,var(--ink));background:color-mix(in srgb,var(--t) 13%,transparent);border:1px solid color-mix(in srgb,var(--t) 34%,transparent)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--t)}
+.pri{font-weight:800}
+.prio{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;font:800 12px/1 var(--f-ui);color:#fff;background:var(--t)}
+
+/* Gráficos */
+.graf{position:relative;width:100%}
+.graf svg{display:block;width:100%;height:auto;overflow:visible}
+.graf text{font-family:var(--f-ui);font-size:11px;fill:var(--grey)}
+.graf .eixo{stroke:var(--chart-axis);stroke-width:1}
+.graf .grade{stroke:var(--chart-grid);stroke-width:1}
+.graf .alvo{cursor:pointer;fill:transparent}
+.graf .barra{transition:opacity .15s}
+.graf.foco .barra{opacity:.35}
+.graf.foco .barra.ativa{opacity:1}
+.legenda{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 10px;font-size:12px;color:var(--grey)}
+.legenda span{display:inline-flex;align-items:center;gap:6px}
+.legenda i{width:11px;height:11px;border-radius:3px;background:var(--t)}
+.legenda i.linha{height:0;border-top:2px dashed var(--t);border-radius:0;width:16px;background:none}
+.dica{position:fixed;z-index:80;pointer-events:none;min-width:180px;max-width:280px;padding:10px 12px;border-radius:12px;background:var(--card);
+  border:1px solid var(--line-strong);box-shadow:0 12px 30px rgba(0,0,0,.18);font-size:12px;line-height:1.45;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s}
+.dica.on{opacity:1;transform:none}
+.dica b{display:block;margin-bottom:4px;font:700 14px/1.2 var(--f-display)}
+.dica .l{display:flex;justify-content:space-between;gap:14px;color:var(--grey)}
+.dica .l span:last-child{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.seg{display:inline-flex;padding:3px;border-radius:11px;background:rgba(255,255,255,.12);gap:2px}
+.seg button{border:0;background:transparent;color:#DCE7F4;padding:5px 11px;border-radius:8px;font:600 12px/1 var(--f-ui);cursor:pointer}
+.seg button.on{background:#fff;color:#0B2A47}
+
+/* Tabelas */
+.tab-rolo{overflow:auto;max-width:100%}
+.tab-rolo.alta{max-height:70vh}
+table.t{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
+table.t th{position:sticky;top:0;z-index:2;padding:9px 10px;text-align:left;white-space:nowrap;font:800 10.5px/1.25 var(--f-ui);letter-spacing:.06em;text-transform:uppercase;
+  color:var(--th-ink);background:var(--th-bg);border-bottom:2px solid color-mix(in srgb,#2f6fe0 25%,transparent)}
+table.t th.n,table.t td.n{text-align:right}
+table.t th[data-ord]{cursor:pointer;user-select:none}
+table.t th[data-ord]:hover{color:var(--leaf)}
+table.t th .seta{display:inline-block;width:10px;margin-left:3px;opacity:.7}
+table.t td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+table.t tbody tr:nth-child(even) td{background:var(--zebra)}
+table.t tbody tr:hover td{background:var(--hover)}
+table.t tbody tr:hover td:first-child{box-shadow:inset 4px 0 0 #2f6fe0}
+table.t tfoot td{position:sticky;bottom:0;z-index:1;padding:9px 10px;background:linear-gradient(120deg,#0B2A47,#1E4B9A);color:#fff;font-weight:700;white-space:nowrap}
+table.t .fix{position:sticky;left:0;z-index:1;background:var(--card)}
+table.t th.fix{z-index:3;background:var(--th-bg)}
+table.t tbody tr:nth-child(even) td.fix{background:var(--zebra)}
+table.t tbody tr:hover td.fix{background:var(--hover)}
+table.t tfoot td.fix{z-index:2;background:#0B2A47}
+table.t .nome{max-width:240px;overflow:hidden;text-overflow:ellipsis}
+table.t .mudo{color:var(--muted)}
+table.t tr.abre{cursor:pointer}
+table.t tr.abre td:first-child::before{content:"›";display:inline-block;width:14px;transition:transform .2s;color:var(--leaf);font-weight:800}
+table.t tr.abre.aberto td:first-child::before{transform:rotate(90deg)}
+table.t tr.detalhe>td{padding:0 0 0 24px;background:var(--sunk)!important}
+table.t tr.detalhe table.t th{position:static}
+.bar-mini{display:inline-block;vertical-align:middle;width:56px;height:6px;margin-left:8px;border-radius:6px;background:var(--sunk);overflow:hidden}
+.bar-mini span{display:block;height:100%;background:var(--leaf);border-radius:6px}
+.vazio{padding:28px;text-align:center;color:var(--muted)}
+
+/* Barra de filtros */
+.filtros{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.campo{display:flex;flex-direction:column;gap:4px;min-width:0}
+.campo label{font:700 10.5px/1 var(--f-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--grey)}
+.campo input,.campo select{height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--line-strong);background:var(--card);min-width:0}
+.campo input[type=search]{width:min(320px,100%)}
+.campo.cresce{flex:1 1 220px}
+.campo.cresce input{width:100%}
+.contador{margin-left:auto;font-size:12.5px;color:var(--grey);align-self:center}
+.contador b{color:var(--ink)}
+
+/* Diagnóstico */
+.achados{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.achado{--t:var(--f3);display:flex;flex-direction:column;gap:8px;padding:16px 18px;border-radius:14px;background:var(--card);border:1px solid var(--line);
+  border-top:4px solid var(--t);box-shadow:var(--sombra-s)}
+.achado h3{margin:0;font:700 16px/1.25 var(--f-display);text-wrap:balance}
+.achado p{margin:0;color:var(--grey);font-size:13px}
+.achado p b{color:var(--ink)}
+.achado .rec{margin-top:auto;padding:9px 11px;border-radius:10px;background:var(--sunk);font-size:12.5px;color:var(--ink)}
+.achado .rec::before{content:"Ação: ";font-weight:700;color:var(--leaf)}
+
+.duas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+.duas-1{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px}
+
+/* Parâmetros */
+.param-grade{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px}
+.form{display:grid;gap:14px}
+.form .linha{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.form .campo input,.form .campo select{height:40px;font-size:15px;font-variant-numeric:tabular-nums}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{border:1px solid var(--line-strong);background:var(--card);border-radius:999px;padding:4px 10px;font:600 11.5px/1.3 var(--f-ui);cursor:pointer;color:var(--ink)}
+.presets button:hover,.presets button.on{border-color:var(--leaf);background:var(--leaf-soft);color:var(--leaf-strong)}
+.preco-final{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;padding:16px 18px;border-radius:14px;
+  background:linear-gradient(120deg,#0B2A47,#1E4B9A);color:#fff}
+.preco-final b{font:800 2.6rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.preco-final span{color:#C9D9EC;font-size:13px}
+.radio{display:flex;flex-wrap:wrap;gap:8px}
+.radio label{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;border:1px solid var(--line-strong);cursor:pointer;background:var(--card)}
+.radio label:has(input:checked){border-color:var(--leaf);background:var(--leaf-soft)}
+.fontes{margin:0;padding-left:18px;font-size:12.5px;color:var(--grey);display:grid;gap:5px}
+.aviso{padding:11px 13px;border-radius:12px;background:var(--warn-bg);color:var(--ink);font-size:12.5px;border:1px solid color-mix(in srgb,var(--warn) 35%,transparent)}
+.sel-arquivo{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.sel-arquivo input{max-width:100%}
+.ok-msg{font-size:12.5px;color:var(--ok)}
+.erro-msg{font-size:12.5px;color:var(--bad)}
+
+.boas-vindas{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:28px}
+.boas-vindas h2{margin:0;font:700 22px/1.2 var(--f-display)}
+.boas-vindas p{margin:0;color:var(--grey);max-width:70ch}
+
+.toast{position:fixed;z-index:90;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(380px,calc(100vw - 32px));
+  padding:12px 14px;border-radius:12px;background:#0B2A47;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);font-size:13px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
+.toast.on{opacity:1;transform:none}
+
+@keyframes sobe{from{opacity:.001;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.tela.on,.kpi{animation:none}.kpi,.faixa,.btn{transition:none}}
+
+/* ============ Responsivo ============ */
+@media (max-width:1280px){.barra-un{display:none}.faixas{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1100px){.duas,.duas-1,.param-grade{grid-template-columns:minmax(0,1fr)}
+  .siga-marca-t b{font-size:17px}.siga-marca-t small{max-width:84px;font-size:9px;white-space:normal;line-height:1.1}.siga-sistema strong{font-size:19px}}
+@media (max-width:900px){
+  .siga-menu{position:fixed;left:0;top:0;bottom:0;z-index:70;height:100%;width:min(300px,86vw);padding-top:calc(16px + env(safe-area-inset-top,0px));
+    transform:translateX(-102%);transition:transform .25s cubic-bezier(.2,.8,.2,1);box-shadow:12px 0 30px rgba(0,0,0,.3)}
+  body.menu-aberto .siga-menu{transform:none}
+  body.menu-aberto .veu{display:block;position:fixed;inset:0;z-index:65;background:rgba(5,15,28,.45)}
+}
+@media (max-width:760px){.siga-sistema span{display:none}.faixas{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){
+  :root{--barra-h:56px}
+  .siga-chapa{--corte:14px;padding:0 20px 0 2px}
+  .siga-marca{gap:5px;padding:2px}
+  .siga-marca svg{width:28px;height:29px}
+  .siga-marca-t b{font-size:16px}
+  .siga-marca-t small{display:none}
+  .siga-sistema strong{font-size:15px;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+  .barra-preco{padding:4px 8px}.barra-preco small{display:none}.barra-preco b{font-size:15px}
+  .bico.so-pc{display:none}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi{padding:12px 12px 11px}.kpi .deco{display:none}
+  .achados{grid-template-columns:minmax(0,1fr)}
+  .cartao-corpo{padding:14px}
+}
+@media (max-width:400px){.faixas{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:minmax(0,1fr)}}
+</style>
+
+<header class="siga-barra">
+  <div class="siga-chapa">
+    <button type="button" id="btnMenu" aria-label="Abrir o menu" title="Menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a class="siga-marca" href="#painel" aria-label="Painel">
+      <svg xmlns="http://www.w3.org/2000/svg" width="857" height="883" viewBox="64 72 857 883"><path fill="#1A9760" d="M398 82 C391 85 367 92 352 99 C338 105 323 113 309 121 C295 130 282 139 269 148 C256 158 244 168 232 179 C221 189 209 200 199 211 C188 223 178 235 169 247 C159 259 150 272 142 285 C134 298 126 311 119 325 C112 338 106 352 101 367 C95 381 91 395 87 410 C83 425 80 440 78 455 C76 469 75 484 74 499 C74 514 74 529 75 544 C77 559 79 574 82 588 C85 603 88 617 93 631 C97 645 102 658 108 672 C114 685 121 698 128 710 C135 723 143 735 151 746 C159 758 168 769 177 779 C186 790 196 800 206 810 C216 820 226 829 237 838 C248 847 259 855 270 863 C282 871 293 878 305 885 C317 892 330 898 342 904 C355 910 368 915 381 920 C394 924 407 929 421 932 C435 935 448 938 462 940 C476 943 490 944 504 945 C518 945 533 945 547 945 C561 944 576 943 590 941 C604 939 618 936 632 932 C646 929 660 925 674 920 C688 915 702 910 715 903 C729 897 742 890 755 882 C767 874 780 866 792 857 C804 848 816 839 828 828 C839 818 855 801 861 796 C854 800 831 812 816 818 C801 825 786 830 772 835 C757 839 742 843 727 846 C713 848 698 850 684 851 C670 852 656 852 643 852 C630 851 617 850 604 848 C591 846 579 843 567 840 C556 837 544 834 534 830 C523 826 513 822 503 818 C493 814 484 809 475 804 C466 800 458 794 450 789 C442 784 434 779 427 774 C419 768 413 763 406 757 C399 752 393 746 387 741 C381 735 375 730 369 724 C364 718 358 712 353 707 C348 701 343 695 338 689 C333 683 329 677 324 670 C320 664 315 658 311 651 C307 645 303 638 299 632 C296 625 292 618 288 611 C285 604 282 597 279 589 C275 582 272 574 270 566 C267 559 264 551 262 542 C260 534 258 525 255 517 C253 508 252 499 250 489 C248 480 247 470 245 460 C244 450 243 439 242 428 C241 417 241 406 241 394 C241 382 241 369 242 356 C243 344 245 330 247 317 C250 303 253 289 257 275 C262 261 267 247 273 234 C280 220 287 207 296 194 C305 181 314 168 325 156 C335 143 347 130 359 118 C371 106 392 88 398 82 Z"/><path fill="#005282" d="M398 82 C391 85 367 92 352 99 C338 105 323 113 309 121 C295 130 282 139 269 148 C256 158 244 168 232 179 C221 189 209 200 199 211 C188 223 178 235 169 247 C159 259 150 272 142 285 C134 298 126 311 119 325 C112 338 106 352 101 367 C95 381 91 395 87 410 C83 425 80 440 78 455 C76 469 75 484 74 499 C74 514 74 529 75 544 C77 559 79 574 82 588 C85 603 88 617 93 631 C97 645 102 658 108 672 C114 685 121 698 128 710 C135 723 143 735 151 746 C159 758 168 769 177 779 C186 790 196 800 206 810 C216 820 226 829 237 838 C248 847 259 855 270 863 C282 871 293 878 305 885 C317 892 330 898 342 904 C355 910 368 915 381 920 C394 924 407 929 421 932 C435 935 448 938 462 940 C476 943 490 944 504 945 C518 945 533 945 547 945 C561 944 576 943 590 941 C604 939 618 936 632 932 C646 929 660 925 674 920 C688 915 702 910 715 903 C729 897 742 890 755 882 C767 874 780 866 792 857 C804 848 816 839 828 828 C839 818 855 801 861 796 C854 800 833 813 819 821 C805 828 791 835 776 840 C762 846 748 850 733 854 C719 858 705 860 691 862 C677 864 663 865 649 866 C636 866 622 866 609 865 C596 864 584 862 572 860 C559 857 548 855 536 852 C525 848 514 845 503 841 C493 837 483 833 473 829 C463 824 454 819 445 814 C436 809 427 804 419 799 C411 794 403 788 395 783 C387 777 380 771 373 765 C366 759 359 753 353 747 C346 741 340 735 334 728 C328 722 322 716 316 709 C311 702 305 696 300 689 C294 682 289 675 284 667 C280 660 275 653 270 645 C266 637 261 630 257 622 C253 613 249 605 246 597 C242 588 239 579 236 570 C233 561 230 552 227 543 C224 533 222 523 220 513 C218 503 216 493 215 482 C213 472 212 461 211 449 C211 438 210 426 211 414 C211 402 211 390 213 378 C214 365 216 352 218 339 C221 326 224 313 228 300 C232 286 237 273 242 259 C248 246 255 232 262 219 C270 206 279 193 288 180 C298 168 308 156 320 144 C331 133 344 122 357 112 C370 101 392 87 398 82 Z"/><path fill="#1A9760" d="M280 220 C286 217 304 208 317 203 C330 198 343 194 355 191 C368 187 381 184 394 182 C407 179 420 177 433 175 C446 173 459 172 471 171 C484 170 497 169 510 169 C523 169 536 169 549 170 C562 171 575 173 589 175 C602 177 615 179 628 182 C641 185 654 188 667 193 C680 197 693 202 705 207 C718 213 730 219 742 226 C754 234 766 241 777 250 C788 259 799 268 809 278 C819 288 828 299 837 311 C845 322 853 334 860 347 C867 359 873 372 879 385 C885 398 890 412 894 425 C899 439 902 453 905 467 C908 481 910 496 911 510 C912 524 912 539 911 553 C910 567 908 582 905 596 C902 610 898 624 893 637 C888 650 882 663 875 676 C868 688 860 700 851 711 C843 722 833 732 824 741 C814 751 803 760 793 768 C782 776 771 784 760 790 C749 797 737 803 726 809 C715 815 703 820 692 825 C681 829 670 834 659 838 C648 843 631 849 626 852 C622 851 609 851 601 850 C592 849 580 845 576 844 C580 840 594 828 601 819 C609 811 616 801 622 791 C629 782 634 772 638 762 C643 752 647 742 650 732 C653 722 655 713 657 703 C658 694 660 684 660 675 C661 666 661 657 661 649 C660 641 660 633 659 625 C658 618 657 610 655 603 C654 597 652 590 650 584 C648 578 646 572 644 566 C642 561 639 555 637 550 C635 545 632 541 629 536 C627 532 624 528 621 524 C618 520 615 516 612 513 C609 509 607 506 604 503 C601 500 598 497 595 495 C592 492 589 490 586 487 C583 485 580 483 577 481 C574 479 571 477 568 476 C565 474 562 472 559 471 C556 469 553 468 550 467 C548 466 545 465 542 464 C539 463 536 462 533 461 C530 460 527 459 524 459 C521 458 519 457 516 457 C513 456 510 456 507 456 C504 455 501 455 498 455 C495 455 492 454 489 454 C486 454 483 454 480 454 C477 454 474 454 470 455 C467 455 464 455 460 455 C457 456 453 456 450 457 C446 457 442 458 438 458 C434 459 430 460 426 461 C422 462 418 463 413 465 C409 466 403 469 400 470 C402 469 407 465 411 462 C415 460 419 458 423 457 C427 455 431 453 434 452 C438 450 442 449 445 448 C449 446 453 445 456 444 C460 443 463 442 467 441 C471 440 474 439 478 438 C481 437 485 436 489 435 C492 434 496 434 500 433 C504 432 507 432 511 431 C515 431 519 430 524 430 C528 429 532 429 537 429 C541 429 546 429 550 429 C555 429 560 429 565 429 C570 430 575 430 580 431 C586 432 591 433 597 435 C602 436 608 438 614 440 C620 442 626 444 632 447 C638 450 644 453 650 456 C656 460 662 464 669 468 C675 473 681 478 687 483 C693 489 699 495 705 501 C710 507 716 514 722 522 C727 529 733 537 738 546 C743 554 748 564 753 573 C757 583 762 593 765 604 C769 615 773 627 775 638 C777 650 777 668 778 674 C781 670 790 656 794 646 C799 636 803 626 806 615 C809 605 812 594 813 583 C815 572 815 561 815 550 C815 539 814 528 812 517 C810 506 808 495 805 485 C802 474 798 464 794 454 C790 444 785 434 780 425 C775 416 769 407 763 398 C757 390 751 381 744 373 C737 365 730 358 723 350 C716 343 708 336 701 330 C693 323 685 317 677 311 C669 305 660 299 652 294 C643 288 634 283 625 278 C616 274 607 269 598 265 C589 261 579 257 569 253 C560 249 550 246 540 243 C529 240 519 237 508 234 C498 231 487 229 476 227 C464 225 453 223 441 221 C429 220 417 219 405 218 C392 218 380 217 366 217 C353 217 340 217 325 218 C311 218 288 220 280 220 Z"/></svg>
+      <span class="siga-marca-t"><b>SIGA<i>-MG</i></b><small>Sistema Integrado Gestão Agrícola</small></span>
+    </a>
+  </div>
+  <div class="siga-sistema"><strong>Contratos de Arrendamento</strong><span id="telaAtual">Painel executivo</span></div>
+  <div class="barra-esp"></div>
+  <a class="barra-preco" href="#parametros" title="Ajustar o preço da tonelada de cana"><span><small>Cana MG · R$/t</small><b id="barraPreco">–</b></span></a>
+  <button type="button" class="bico so-pc" id="btnImportar" title="Importar planilha atualizada" aria-label="Importar planilha atualizada"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></button>
+  <button type="button" class="bico" id="btnTema" title="Tema claro ou escuro" aria-label="Trocar tema"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  <div class="barra-un"><b>GESTÃO AGRÍCOLA</b><small>Unidade Capinópolis-MG</small></div>
+</header>
+
+<div class="casca">
+  <nav class="siga-menu" id="menu" aria-label="Telas">
+    <div class="m-sec" style="--c:#22B8CF">Visão geral</div>
+    <a class="m-item" data-tela="painel" href="#painel" style="--c:#22B8CF"><span class="q" data-ic="grade"></span><span class="t"><b>Painel executivo</b><small>Resumo da carteira</small></span></a>
+    <div class="m-sec" style="--c:#FF922B">Vencimentos</div>
+    <a class="m-item" data-tela="vencimentos" href="#vencimentos" style="--c:#FF922B"><span class="q" data-ic="calendario"></span><span class="t"><b>Vencimentos por ano</b><small>Cronograma e faixas de risco</small></span></a>
+    <div class="m-sec" style="--c:#9775FA">Análise</div>
+    <a class="m-item" data-tela="analise" href="#analise" style="--c:#9775FA"><span class="q" data-ic="lupa"></span><span class="t"><b>Análise crítica</b><small>Diagnóstico e plano de ação</small></span></a>
+    <a class="m-item" data-tela="parceiros" href="#parceiros" style="--c:#9775FA"><span class="q" data-ic="pessoas"></span><span class="t"><b>Parceiros</b><small>Concentração da área</small></span></a>
+    <div class="m-sec" style="--c:#20C997">Dados</div>
+    <a class="m-item" data-tela="contratos" href="#contratos" style="--c:#20C997"><span class="q" data-ic="tabela"></span><span class="t"><b>Tabela de contratos</b><small>Relação completa da planilha</small></span></a>
+    <div class="m-sec" style="--c:#FCC419">Configurações</div>
+    <a class="m-item" data-tela="parametros" href="#parametros" style="--c:#FCC419"><span class="q" data-ic="ajuste"></span><span class="t"><b>Parâmetros</b><small>Preço da cana e critérios</small></span></a>
+    <div class="m-rodape" id="menuRodape"></div>
+  </nav>
+  <div class="veu" id="veu"></div>
+
+  <main id="conteudo">
+    <!-- ===== PAINEL ===== -->
+    <section class="tela" id="t-painel" data-titulo="Painel executivo">
+      <div class="cab-tela"><div><div class="sobre">Visão geral · carteira de arrendamentos</div><h1>Painel executivo</h1><p id="painelSub"></p></div>
+        <div class="acoes"><a class="btn" href="#analise"><span data-ic="lupa"></span>Ver análise crítica</a><a class="btn pri" href="#contratos"><span data-ic="tabela"></span>Abrir tabela</a></div></div>
+      <div class="kpis" id="painelKpis"></div>
+      <div class="cartao">
+        <div class="cartao-cab"><div><h2>Área a vencer por ano</h2><p>Hectares por ano de encerramento, na cor da faixa de vencimento. Toque numa barra para ver os contratos.</p></div></div>
+        <div class="cartao-corpo"><div class="legenda" id="legFaixas"></div><div class="graf" id="grafPainel"></div></div>
+        <p class="nota">Faixas contadas em safras a partir da safra corrente. Contrato que termina em 30/11 paga a safra daquele ano; os anos depois de 2039 aparecem somados em "2040+".</p>
+      </div>
+      <div class="faixas" id="painelFaixas"></div>
+      <div class="duas-1">
+        <div class="cartao"><div class="cartao-cab"><div><h2>Pontos de atenção</h2><p>O que pede decisão primeiro. Detalhes em Análise crítica.</p></div></div>
+          <div class="cartao-corpo" id="painelAlertas"></div></div>
+        <div class="cartao"><div class="cartao-cab"><div><h2>Próximos vencimentos</h2><p>Contratos que encerram nas próximas duas safras</p></div></div>
+          <div class="tab-rolo" style="max-height:420px" id="painelProximos"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== VENCIMENTOS ===== -->
+    <section class="tela" id="t-vencimentos" data-titulo="Vencimentos por ano">
+      <div class="cab-tela"><div><div class="sobre">Vencimentos · cronograma de encerramento</div><h1>Vencimentos por ano</h1>
+        <p>Relação de todos os contratos por ano de encerramento, com área, média ponderada da negociação em toneladas e o valor em reais pelo preço da cana dos Parâmetros.</p></div></div>
+      <div class="cartao">
+        <div class="cartao-cab"><div><h2>Perfil de vencimentos</h2><p id="vencGrafSub">Área (ha) por ano de encerramento</p></div>
+          <div class="seg" id="vencMetrica" role="group" aria-label="Medida do gráfico">
+            <button type="button" data-m="ha" class="on">Área ha</button><button type="button" data-m="n">Contratos</button><button type="button" data-m="t">t/safra</button><button type="button" data-m="r">R$/safra</button></div></div>
+        <div class="cartao-corpo"><div class="legenda" id="legFaixas2"></div><div class="graf" id="grafVenc"></div></div>
+      </div>
+      <div class="cartao">
+        <div class="cartao-cab"><div><h2>Relação anual de vencimentos</h2><p>Clique no ano para abrir os contratos. "Renovar a mercado" compara a negociação atual com a média ponderada dos contratos novos.</p></div>
+          <button type="button" class="btn" id="btnAbrirTodos" style="height:32px">Abrir todos</button></div>
+        <div class="tab-rolo" id="tabVenc"></div>
+        <p class="nota" id="notaVenc"></p>
+      </div>
+    </section>
+
+    <!-- ===== ANÁLISE ===== -->
+    <section class="tela" id="t-analise" data-titulo="Análise crítica">
+      <div class="cab-tela"><div><div class="sobre">Análise · visão do gestor de contratos</div><h1>Análise crítica da carteira</h1>
+        <p>Diagnóstico calculado sobre a planilha e os parâmetros atuais. Os números mudam quando o preço da cana, a data-base ou a planilha mudam.</p></div></div>
+      <div class="achados" id="achados"></div>
+      <div class="duas">
+        <div class="cartao"><div class="cartao-cab"><div><h2>Negociação por ano de assinatura</h2><p>t/alq ponderada pela área dos contratos assinados em cada ano</p></div></div>
+          <div class="cartao-corpo"><div class="legenda" id="legSafra"></div><div class="graf" id="grafSafra"></div></div>
+          <p class="nota">A linha tracejada é a média ponderada da carteira. Contratos novos mostram o preço que o mercado pede hoje.</p></div>
+        <div class="cartao"><div class="cartao-cab"><div><h2>Área por faixa de preço</h2><p>Hectares por faixa de t/alq negociada</p></div></div>
+          <div class="cartao-corpo"><div class="graf" id="grafPreco"></div></div>
+          <p class="nota">Áreas abaixo do preço de mercado tendem a subir na renovação; acima, são candidatas a renegociar para baixo.</p></div>
+      </div>
+      <div class="cartao">
+        <div class="cartao-cab"><div><h2>Matriz de prioridade de renegociação</h2><p>Nota de 0 a 100: 50% urgência (safras restantes), 30% tamanho da área, 20% defasagem frente ao mercado</p></div>
+          <a class="btn" href="#contratos" data-filtro-prio="A" style="height:32px">Ver todos na tabela</a></div>
+        <div class="tab-rolo" style="max-height:520px" id="tabPrio"></div>
+        <p class="nota">A = negociar já (nota ≥ 60) · B = preparar (35 a 59) · C = acompanhar. Contratos com devolução sinalizada saem da matriz e entram no plano de saída.</p>
+      </div>
+      <div class="duas">
+        <div class="cartao"><div class="cartao-cab"><div><h2>Plano de ação por horizonte</h2><p>Proposta de agenda para a área de contratos</p></div></div>
+          <div class="cartao-corpo" id="planoAcao"></div></div>
+        <div class="cartao"><div class="cartao-cab"><div><h2>Qualidade do cadastro</h2><p>Pendências encontradas na planilha</p></div></div>
+          <div class="tab-rolo" style="max-height:440px" id="tabQualidade"></div></div>
+      </div>
+    </section>
+
+    <!-- ===== PARCEIROS ===== -->
+    <section class="tela" id="t-parceiros" data-titulo="Parceiros">
+      <div class="cab-tela"><div><div class="sobre">Análise · concentração</div><h1>Parceiros agrícolas</h1>
+        <p>Área, negociação ponderada e vencimentos agrupados por parceiro (código de fornecedor). Mostra a dependência da usina de poucos proprietários.</p></div></div>
+      <div class="duas-1">
+        <div class="cartao"><div class="cartao-cab"><div><h2>Maiores parceiros por área</h2><p>15 maiores, em hectares, na cor da faixa do próximo vencimento</p></div></div>
+          <div class="cartao-corpo"><div class="graf" id="grafParc"></div></div></div>
+        <div class="cartao"><div class="cartao-cab"><div><h2>Curva de concentração</h2><p>Quanto da área está nos maiores parceiros</p></div></div>
+          <div class="cartao-corpo" id="concentracao"></div></div>
+      </div>
+      <div class="cartao">
+        <div class="filtros"><div class="campo cresce"><label for="buscaParc">Buscar parceiro</label><input type="search" id="buscaParc" placeholder="Nome ou código"></div><div class="contador" id="contParc"></div></div>
+        <div class="tab-rolo alta" id="tabParc"></div>
+      </div>
+    </section>
+
+    <!-- ===== CONTRATOS ===== -->
+    <section class="tela" id="t-contratos" data-titulo="Tabela de contratos">
+      <div class="cab-tela"><div><div class="sobre">Dados · relação de contratos</div><h1>Tabela de contratos</h1>
+        <p id="contratosSub">Todas as colunas da planilha, com os cálculos de prazo, média ponderada, faixa e valor em reais.</p></div>
+        <div class="acoes"><button type="button" class="btn" id="btnCsv"><span data-ic="baixar"></span>Exportar CSV</button></div></div>
+      <div class="cartao">
+        <div class="filtros">
+          <div class="campo cresce"><label for="fBusca">Buscar</label><input type="search" id="fBusca" placeholder="Contrato, fazenda, parceiro, código…"></div>
+          <div class="campo"><label for="fAno">Vencimento</label><select id="fAno"></select></div>
+          <div class="campo"><label for="fFaixa">Faixa</label><select id="fFaixa"></select></div>
+          <div class="campo"><label for="fPrio">Prioridade</label><select id="fPrio"><option value="">Todas</option><option value="A">A · negociar já</option><option value="B">B · preparar</option><option value="C">C · acompanhar</option><option value="D">Devolução</option></select></div>
+          <div class="campo"><label for="fObs">Situação</label><select id="fObs"><option value="">Todas</option><option value="obs">Com observação</option><option value="dev">Devolução sinalizada</option><option value="colheita">Encerra antes de 30/11</option><option value="reforma">Sem janela de reforma</option><option value="semdata">Sem data de contrato</option><option value="abaixo">Abaixo do mercado</option></select></div>
+          <button type="button" class="btn" id="fLimpar" style="align-self:flex-end">Limpar</button>
+          <div class="contador" id="contContratos"></div>
+        </div>
+        <div class="tab-rolo alta" id="tabContratos"></div>
+        <p class="nota">t/ha = t/alq ÷ 4,84 (alqueire mineiro). % da área e contribuição ponderada somam 100% e a média ponderada da seleção. Safras restantes não contam a safra corrente. R$ pelo preço da tonelada dos Parâmetros.</p>
+      </div>
+    </section>
+
+    <!-- ===== PARÂMETROS ===== -->
+    <section class="tela" id="t-parametros" data-titulo="Parâmetros">
+      <div class="cab-tela"><div><div class="sobre">Configurações · base de cálculo</div><h1>Parâmetros de análise</h1>
+        <p>O preço da tonelada converte a negociação em toneladas de cana para reais por hectare. Fica guardado neste navegador.</p></div>
+        <div class="acoes"><button type="button" class="btn" id="btnPadrao">Restaurar padrões</button></div></div>
+      <div class="param-grade">
+        <div class="cartao">
+          <div class="cartao-cab"><div><h2>Preço da tonelada de cana · Minas Gerais</h2><p>Consecana: kg de ATR por tonelada × preço do kg de ATR</p></div></div>
+          <div class="cartao-corpo form">
+            <div class="radio" role="radiogroup" aria-label="Forma do preço">
+              <label><input type="radio" name="modo" value="atr" id="modoAtr"> Calcular pelo ATR (Consecana)</label>
+              <label><input type="radio" name="modo" value="direto" id="modoDireto"> Informar R$/t direto</label>
+            </div>
+            <div class="linha" id="blocoAtr">
+              <div class="campo"><label for="pAtr">ATR (kg/t de cana)</label><input type="number" id="pAtr" step="0.0001" min="0" inputmode="decimal">
+                <div class="presets" data-alvo="pAtr">
+                  <button type="button" data-v="121.9676" title="Cana-padrão do Consecana, usada na conversão de contratos em tonelada">Cana-padrão 121,9676</button>
+                  <button type="button" data-v="139.4" title="Projeção Siamig para a safra 2026/27 em Minas Gerais">Siamig MG 26/27 · 139,4</button></div></div>
+              <div class="campo"><label for="pKg">Preço do kg de ATR (R$/kg)</label><input type="number" id="pKg" step="0.0001" min="0" inputmode="decimal">
+                <div class="presets" data-alvo="pKg">
+                  <button type="button" data-v="0.8770" title="Consecana-SP, acumulado da safra 26/27 até agosto/2026 (Socicana)">Acum. 26/27 até ago · 0,8770</button>
+                  <button type="button" data-v="0.9790" title="Projeção Pecege para a média da safra 2026/27">Projeção Pecege 26/27 · 0,9790</button>
+                  <button type="button" data-v="1.0816" title="Média da safra 2025/26 (base da projeção Pecege)">Média 25/26 · 1,0816</button></div></div>
+            </div>
+            <div class="linha" id="blocoDireto"><div class="campo"><label for="pDireto">Preço da tonelada (R$/t)</label><input type="number" id="pDireto" step="0.01" min="0" inputmode="decimal"></div></div>
+            <div class="preco-final"><b id="precoFinal">–</b><span id="precoFinalTxt"></span></div>
+            <div class="aviso"><b>Atualização do preço.</b> Esta página não consegue ler sites externos sozinha (o navegador bloqueia), então o valor vem pré-carregado com a referência mais recente encontrada em 08/11/2026: Consecana-SP acumulado da safra 26/27 até agosto (R$ 0,8770/kg), sobre a cana-padrão (121,9676 kg ATR/t). Minas Gerais não tem conselho Consecana próprio e usa a referência paulista. Ao sair a circular do mês, digite o novo preço do kg aqui.</div>
+            <ul class="fontes">
+              <li><a href="https://www.udop.com.br/consecana" target="_blank" rel="noopener">UDOP · circulares e histórico do Consecana-SP</a></li>
+              <li><a href="https://socicana.com.br/calculadora-de-atr/preco-do-kg/" target="_blank" rel="noopener">Socicana · preço do kg de ATR mensal e acumulado</a></li>
+              <li><a href="https://assocana.com.br/cards/historico-atr/historico-atr.pdf" target="_blank" rel="noopener">Assocana · histórico do preço do kg do ATR</a></li>
+              <li><a href="https://www.novacana.com/noticias/safra-cana-minas-gerais-devera-crescer-11-6-2026-27-associacao-270426" target="_blank" rel="noopener">Siamig · projeção da safra mineira 26/27 (ATR 139,4 kg/t)</a></li>
+            </ul>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+          <div class="cartao">
+            <div class="cartao-cab"><div><h2>Critérios de análise</h2><p>Usados nas faixas, no mercado de referência e na matriz</p></div></div>
+            <div class="cartao-corpo form">
+              <div class="linha">
+                <div class="campo"><label for="pBase">Data-base</label><input type="date" id="pBase"></div>
+                <div class="campo"><label for="pJanela">Mercado: contratos dos últimos (meses)</label><input type="number" id="pJanela" min="3" max="120" step="1"></div>
+                <div class="campo"><label for="pCiclo">Safras mínimas para reformar</label><input type="number" id="pCiclo" min="1" max="10" step="1"></div>
+              </div>
+              <div id="criteriosTxt" style="font-size:12.5px;color:var(--grey);display:grid;gap:6px"></div>
+            </div>
+          </div>
+          <div class="cartao">
+            <div class="cartao-cab"><div><h2>Atualizar a planilha</h2><p>Relação de Contratos exportada do CHB (.xlsx)</p></div></div>
+            <div class="cartao-corpo form">
+              <div class="sel-arquivo"><input type="file" id="arquivo" accept=".xlsx,.xls,.csv"><span id="arquivoMsg"></span></div>
+              <div style="font-size:12.5px;color:var(--grey)">A planilha precisa das colunas Contrato, Propriedade, Fundo Agrícola, Fornecedor, Parceiro Agrícola, Área Contratada Ha, Área Contratada Alq, Toneladas (Ha/Alq), Data Contrato, Previsão Encerramento e Observações. Os dados ficam só neste navegador.</div>
+              <div id="origemTxt" style="font-size:12.5px;color:var(--grey)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="dica" id="dica" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------------- dados da planilha ----------------
+   [contrato, propriedade, fundo, fornecedor, parceiro, ha, alq, t/alq, data contrato, previsão encerramento, observações] */
+const DADOS_PLANILHA = /*__DADOS__*/[];
+const ORIGEM_PLANILHA = "";
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const guarda = {
+  ler(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  gravar(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---------------- formatos (padrão SIGA: milhar com ponto, decimal com vírgula) ---------------- */
+const nf = {};
+const fmt = (v, d=2) => (v==null || !isFinite(v)) ? "–" : (nf[d] ||= new Intl.NumberFormat("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})).format(v);
+const fmtR = (v, d=2) => (v==null || !isFinite(v)) ? "–" : "R$ " + fmt(v, d);
+const fmtRc = v => { if(v==null||!isFinite(v)) return "–"; const a=Math.abs(v);
+  if(a>=1e6) return "R$ " + fmt(v/1e6, 2) + " mi"; if(a>=1e3) return "R$ " + fmt(v/1e3, 1) + " mil"; return fmtR(v,0); };
+const fmtP = (v, d=0) => (v==null || !isFinite(v)) ? "–" : fmt(v*100, d) + "%";
+const fmtD = d => d ? String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear() : "–";
+const safraRot = y => String(y%100).padStart(2,"0")+"/"+String((y+1)%100).padStart(2,"0");
+const plural = (n, s, p) => fmt(n,0) + " " + (n===1 ? s : p);
+
+/* ---------------- ícones ---------------- */
+const IC = {
+  grade:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  calendario:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  lupa:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  pessoas:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  tabela:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/>',
+  ajuste:'<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  baixar:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>',
+  doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/>',
+  mapa:'<path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/>',
+  balanca:'<path d="M12 3v18M5 21h14M6 7h12"/><path d="M6 7l-3 7a3 3 0 0 0 6 0zM18 7l-3 7a3 3 0 0 0 6 0z"/>',
+  cana:'<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+  moeda:'<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.6-3-1.6M12 6v2M12 16v2"/>',
+  alerta:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  relogio:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  tendencia:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>'
+};
+const icone = (n, cls="") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||""}</svg>`;
+function pintarIcones(r=document){ $$("[data-ic]", r).forEach(el => { if(!el.firstChild) el.innerHTML = icone(el.dataset.ic); }); }
+
+/* ---------------- parâmetros ---------------- */
+const hojeISO = (() => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })();
+const PADRAO = {modo:"atr", atr:121.9676, kg:0.8770, direto:106.97, base:hojeISO, janela:24, ciclo:5};
+let P = Object.assign({}, PADRAO, guarda.ler("arr-param") || {}, {base:hojeISO});   // a data-base volta para hoje a cada abertura
+const precoT = () => P.modo === "direto" ? +P.direto || 0 : (+P.atr || 0) * (+P.kg || 0);
+
+/* ---------------- faixas de vencimento ---------------- */
+const FAIXAS = [
+  {id:0, nome:"Vence nesta safra", cor:"--f0", desc:"Encerra na safra corrente ou já venceu"},
+  {id:1, nome:"Próxima safra",     cor:"--f1", desc:"Última safra paga é a próxima"},
+  {id:2, nome:"Curto prazo",       cor:"--f2", desc:"2 a 3 safras restantes"},
+  {id:3, nome:"Médio prazo",       cor:"--f3", desc:"4 a 6 safras restantes"},
+  {id:4, nome:"Longo prazo",       cor:"--f4", desc:"7 safras ou mais"}
+];
+const faixaDe = r => r <= 0 ? 0 : r === 1 ? 1 : r <= 3 ? 2 : r <= 6 ? 3 : 4;
+const corVar = v => `var(${v})`;
+
+/* ---------------- leitura e cálculo ---------------- */
+let BRUTO = [];      // linhas da planilha
+let C = [];          // contratos calculados
+let G = {};          // agregados globais
+let origemTxt = ORIGEM_PLANILHA;
+
+function data(v){ if(!v) return null; if(v instanceof Date) return isNaN(v) ? null : v;
+  const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+  const b = String(v).match(/^(\d{2})\/(\d{2})\/(\d{4})/); if(b) return new Date(+b[3], +b[2]-1, +b[1]); return null; }
+
+function carregar(linhas){
+  BRUTO = linhas.map(l => ({
+    id:l[0], prop:l[1], fundo:l[2]||"", forn:l[3], parc:l[4]||"", ha:+l[5]||0, alq:+l[6]||0, tAlq:+l[7]||0,
+    ini:data(l[8]), fim:data(l[9]), obs:(l[10]||"").trim()
+  })).filter(c => c.id && c.fim);
+}
+
+function calcular(){
+  const base = data(P.base) || new Date();
+  const S = base.getMonth() >= 3 ? base.getFullYear() : base.getFullYear()-1;   // safra corrente (abril a março)
+  const preco = precoT();
+  const limiteMercado = new Date(base); limiteMercado.setMonth(limiteMercado.getMonth() - (+P.janela || 24));
+  // mercado de referência: contratos assinados na janela
+  let mA=0, mT=0, mN=0;
+  BRUTO.forEach(c => { if(c.ini && c.ini >= limiteMercado && c.ini <= base){ mA += c.alq; mT += c.alq*c.tAlq; mN++; } });
+  const totHa = BRUTO.reduce((s,c)=>s+c.ha,0), totAlq = BRUTO.reduce((s,c)=>s+c.alq,0), totT = BRUTO.reduce((s,c)=>s+c.alq*c.tAlq,0);
+  const mercado = mA ? mT/mA : totT/totAlq;
+  const has = BRUTO.map(c=>c.ha).sort((a,b)=>a-b); const p90 = has[Math.floor(has.length*0.9)] || 1;
+  const urg = [1,.85,.65,.5,.35,.2,.1];
+  C = BRUTO.map(c => {
+    const fator = c.alq ? c.ha / c.alq : 4.84;
+    const ultima = c.fim.getMonth() >= 3 ? c.fim.getFullYear() : c.fim.getFullYear()-1;
+    const R = ultima - S;
+    const vencido = c.fim < base;
+    const fx = vencido ? 0 : faixaDe(R);
+    const tHa = c.tAlq / fator, tAno = c.tAlq * c.alq;
+    const prazo = c.ini ? (c.fim - c.ini) / 31557600000 : null;
+    const decorrido = c.ini ? Math.min(1, Math.max(0, (base - c.ini) / (c.fim - c.ini))) : null;
+    const fimMes = c.fim.getMonth(), fimDia = c.fim.getDate();
+    const colheita = !((fimMes === 10 && fimDia >= 30) || fimMes === 11 || fimMes <= 2);
+    const dev = /DEVOLU/i.test(c.obs);
+    const gap = mercado - c.tAlq;
+    const u = vencido || R <= 0 ? 1 : (urg[R] ?? 0);
+    const nota = Math.round(100*(.5*u + .3*Math.min(1, c.ha/p90) + .2*Math.min(1, Math.max(0, gap)/20)));
+    const prio = dev ? "D" : nota >= 60 ? "A" : nota >= 35 ? "B" : "C";
+    return Object.assign({}, c, {fator, ultima, R:Math.max(0,R), vencido, fx, tHa, tAno, prazo, decorrido, colheita, dev,
+      cmaa:/CMAA/i.test(c.obs), reforma: R < (+P.ciclo||5), gap, nota, prio, anoFim:c.fim.getFullYear(),
+      pctHa: c.ha/totHa, contrib: c.tAlq * c.alq / totAlq,
+      rHa: tHa*preco, rAno: tAno*preco, tResta: tAno*Math.max(0,R), rResta: tAno*Math.max(0,R)*preco});
+  });
+  G = {mercado};
+  G = Object.assign(agregar(C), {base, S, preco, mercado, mercadoN:mN, p90});
+}
+
+function agregar(lista){
+  const a = {n:lista.length, ha:0, alq:0, tAno:0, rAno:0, tResta:0, rResta:0, Rpond:0, impT:0, dev:0, devHa:0};
+  const parc = new Set();
+  lista.forEach(c => { a.ha+=c.ha; a.alq+=c.alq; a.tAno+=c.tAno; a.rAno+=c.rAno; a.tResta+=c.tResta; a.rResta+=c.rResta; a.Rpond+=c.R*c.ha;
+    a.impT += (G.mercado!=null ? (G.mercado - c.tAlq) : 0) * c.alq; if(c.dev){a.dev++; a.devHa+=c.ha;} parc.add(c.forn); });
+  a.parc = parc.size;
+  a.tAlq = a.alq ? a.tAno/a.alq : null; a.tHa = a.ha ? a.tAno/a.ha : null; a.rHa = a.ha ? a.rAno/a.ha : null;
+  a.Rmed = a.ha ? a.Rpond/a.ha : null;
+  return a;
+}
+const totHaGlobal = () => C.reduce((s,c)=>s+c.ha,0);
+
+/* ---------------- dica (tooltip) ---------------- */
+const dica = $("#dica");
+function mostrarDica(ev, titulo, linhas){
+  dica.innerHTML = `<b>${esc(titulo)}</b>` + linhas.map(([k,v]) => `<div class="l"><span>${esc(k)}</span><span>${esc(v)}</span></div>`).join("");
+  dica.classList.add("on"); moverDica(ev);
+}
+function moverDica(ev){ const w = dica.offsetWidth, h = dica.offsetHeight; let x = ev.clientX + 14, y = ev.clientY + 14;
+  if(x + w > innerWidth - 8) x = ev.clientX - w - 14; if(y + h > innerHeight - 8) y = ev.clientY - h - 14; dica.style.left = Math.max(8,x)+"px"; dica.style.top = Math.max(8,y)+"px"; }
+function esconderDica(){ dica.classList.remove("on"); }
+
+/* ---------------- gráfico de barras verticais (SVG) ---------------- */
+function passoBonito(max, n=5){ if(max<=0) return 1; const bruto = max/n, p = Math.pow(10, Math.floor(Math.log10(bruto))), r = bruto/p;
+  return (r<=1?1:r<=2?2:r<=2.5?2.5:r<=5?5:10)*p; }
+function barras(el, itens, op={}){
+  const W = Math.max(320, el.clientWidth || 800), H = op.altura || (W < 560 ? 240 : 300);
+  const m = {t:22, r:12, b:op.rotulo2 ? 44 : 30, l:op.margemEsq || 56};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const refs = (op.refs||[]).filter(r => isFinite(r.v));
+  const maxV = Math.max(...itens.map(i=>i.v), ...refs.map(r=>r.v), 0) || 1;
+  const passo = passoBonito(maxV), topo = Math.ceil(maxV/passo)*passo || 1;
+  const y = v => m.t + ih - (v/topo)*ih;
+  const bw = iw / itens.length, larg = Math.min(46, bw*0.62);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(op.titulo||"Gráfico")}">`;
+  for(let v=0; v<=topo+1e-9; v+=passo){ const yy = y(v);
+    s += `<line class="grade" x1="${m.l}" x2="${W-m.r}" y1="${yy}" y2="${yy}"/><text x="${m.l-8}" y="${yy+4}" text-anchor="end">${esc(op.fmtEixo ? op.fmtEixo(v) : fmt(v,0))}</text>`; }
+  s += `<line class="eixo" x1="${m.l}" x2="${W-m.r}" y1="${y(0)}" y2="${y(0)}"/>`;
+  const destaque = op.destaque || [];
+  itens.forEach((it, i) => {
+    const cx = m.l + bw*i + bw/2, x = cx - larg/2, yy = y(it.v), h = Math.max(0, y(0) - yy), r = Math.min(4, h/2, larg/2);
+    s += `<path class="barra" data-i="${i}" style="fill:${it.cor}" d="M${x},${y(0)} V${yy+r} Q${x},${yy} ${x+r},${yy} H${x+larg-r} Q${x+larg},${yy} ${x+larg},${yy+r} V${y(0)} Z"/>`;
+    if(destaque.includes(i) && it.v>0) s += `<text x="${cx}" y="${yy-7}" text-anchor="middle" style="font-weight:700;fill:var(--ink)">${esc(it.rotV)}</text>`;
+    const pular = itens.length > 14 && W < 560 && i % 2 === 1;
+    if(!pular) s += `<text x="${cx}" y="${H-m.b+16}" text-anchor="middle">${esc(it.rot)}</text>`;
+    if(op.rotulo2 && !pular) s += `<text x="${cx}" y="${H-m.b+30}" text-anchor="middle" style="font-size:10px;fill:var(--muted)">${esc(it.rot2||"")}</text>`;
+    s += `<rect class="alvo" data-i="${i}" x="${m.l+bw*i}" y="${m.t}" width="${bw}" height="${ih}"/>`;
+  });
+  refs.slice().sort((a,b)=>b.v-a.v).forEach((r, k) => { const yy = y(r.v);
+    s += `<line x1="${m.l}" x2="${W-m.r}" y1="${yy}" y2="${yy}" style="stroke:${r.cor}" stroke-width="2" stroke-dasharray="6 4" pointer-events="none"/>`;
+    s += `<text x="${W-m.r}" y="${k===0 ? yy-6 : yy+14}" text-anchor="end" style="font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:3px" pointer-events="none">${esc(r.rot)}</text>`; });
+  s += `</svg>`;
+  el.innerHTML = s;
+  $$(".alvo", el).forEach(a => {
+    const i = +a.dataset.i, it = itens[i], barra = el.querySelector(`.barra[data-i="${i}"]`);
+    a.addEventListener("mousemove", ev => { el.classList.add("foco"); barra.classList.add("ativa"); mostrarDica(ev, it.dicaT || it.rot, it.dica || []); });
+    a.addEventListener("mouseleave", () => { el.classList.remove("foco"); barra.classList.remove("ativa"); esconderDica(); });
+    if(op.clique) a.addEventListener("click", () => { esconderDica(); op.clique(it, i); });
+  });
+}
+
+/* barras horizontais */
+function barrasH(el, itens, op={}){
+  const W = Math.max(300, el.clientWidth || 600), linha = 26, m = {t:6, r:70, b:6, l: W < 520 ? 120 : 190};
+  const H = m.t + m.b + itens.length*linha, iw = W - m.l - m.r;
+  const maxV = Math.max(...itens.map(i=>i.v), 1);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(op.titulo||"Gráfico")}">`;
+  itens.forEach((it, i) => { const yy = m.t + i*linha, w = Math.max(2, it.v/maxV*iw), hb = 16, y0 = yy + (linha-hb)/2;
+    const nome = it.rot.length > (W<520?16:28) ? it.rot.slice(0, W<520?15:27)+"…" : it.rot;
+    s += `<text x="${m.l-8}" y="${y0+12}" text-anchor="end">${esc(nome)}</text>`;
+    s += `<path class="barra" data-i="${i}" style="fill:${it.cor}" d="M${m.l},${y0} H${m.l+w-4} Q${m.l+w},${y0} ${m.l+w},${y0+4} V${y0+hb-4} Q${m.l+w},${y0+hb} ${m.l+w-4},${y0+hb} H${m.l} Z"/>`;
+    s += `<text x="${m.l+w+6}" y="${y0+12}" style="fill:var(--ink);font-weight:600">${esc(it.rotV)}</text>`;
+    s += `<rect class="alvo" data-i="${i}" x="0" y="${yy}" width="${W}" height="${linha}"/>`; });
+  s += `</svg>`; el.innerHTML = s;
+  $$(".alvo", el).forEach(a => { const i=+a.dataset.i, it=itens[i], b=el.querySelector(`.barra[data-i="${i}"]`);
+    a.addEventListener("mousemove", ev => { el.classList.add("foco"); b.classList.add("ativa"); mostrarDica(ev, it.rot, it.dica||[]); });
+    a.addEventListener("mouseleave", () => { el.classList.remove("foco"); b.classList.remove("ativa"); esconderDica(); });
+    if(op.clique) a.addEventListener("click", () => { esconderDica(); op.clique(it); }); });
+}
+
+/* ---------------- agrupamento por ano ---------------- */
+function porAno(){
+  const mapa = new Map();
+  C.forEach(c => { const k = c.anoFim >= 2040 ? 2040 : c.anoFim; if(!mapa.has(k)) mapa.set(k, []); mapa.get(k).push(c); });
+  const anos = [...mapa.keys()].sort((a,b)=>a-b);
+  const tot = totHaGlobal(); let acum = 0;
+  return anos.map(a => { const l = mapa.get(a), g = agregar(l); acum += g.ha;
+    const fx = Math.min(...l.map(c=>c.fx));
+    return Object.assign(g, {ano:a, rot: a===2040 ? "2040+" : String(a), lista:l, fx, pct:g.ha/tot, acum:acum/tot}); });
+}
+const corFaixa = fx => `var(${FAIXAS[fx].cor})`;
+function legendaFaixas(el){ el.innerHTML = FAIXAS.map(f => `<span><i style="--t:var(${f.cor})"></i>${esc(f.nome)}</span>`).join(""); }
+
+/* ================= TELAS ================= */
+function kpi(o, i){
+  return `<div class="kpi" style="--k:var(${o.k});--i:${i}" ${o.ir?`data-ir="${o.ir}"`:""}>
+    <div class="ico">${icone(o.ic)}</div><div class="rot">${esc(o.rot)}</div>
+    <div class="val num">${o.val}${o.un?`<small>${esc(o.un)}</small>`:""}</div><div class="sub">${o.sub}</div>${icone(o.ic,"deco")}</div>`;
+}
+
+function telaPainel(){
+  const g = G, anos = porAno();
+  const curto = C.filter(c => c.fx <= 2), gc = agregar(curto);
+  $("#painelSub").textContent = `Posição em ${fmtD(g.base)} · safra corrente ${safraRot(g.S)} · ${plural(g.n,"contrato","contratos")} de ${plural(g.parc,"parceiro","parceiros")}` + (origemTxt ? ` · planilha ${origemTxt}` : "");
+  $("#painelKpis").innerHTML = [
+    {k:"--k-azul", ic:"doc", rot:"Contratos ativos", val:fmt(g.n,0), sub:`${fmt(g.parc,0)} parceiros · ${fmt(new Set(C.map(c=>c.prop)).size,0)} propriedades`, ir:"contratos"},
+    {k:"--k-verde", ic:"mapa", rot:"Área arrendada", val:fmt(g.ha,2), un:"ha", sub:`${fmt(g.alq,2)} alqueires mineiros (4,84 ha)`},
+    {k:"--k-anil", ic:"balanca", rot:"Média ponderada", val:fmt(g.tAlq,2), un:"t/alq", sub:`${fmt(g.tHa,2)} t/ha por safra, ponderada pela área`},
+    {k:"--k-teal", ic:"cana", rot:"Cana de arrendamento", val:fmt(g.tAno,0), un:"t/safra", sub:`${fmt(g.tResta,0)} t nas safras futuras dos contratos`},
+    {k:"--k-roxo", ic:"moeda", rot:"Custo anual estimado", val:fmtRc(g.rAno), sub:`a ${fmtR(g.preco)}/t · ${fmtRc(g.rResta)} até o fim dos contratos`, ir:"parametros"},
+    {k:"--k-ouro", ic:"moeda", rot:"Custo médio por hectare", val:fmtR(g.rHa,0), un:"/ha/ano", sub:`${fmtR(g.rHa*g.tAlq/g.tHa,0)} por alqueire/ano`, ir:"parametros"},
+    {k:"--k-vermelho", ic:"alerta", rot:"Vence em até 3 safras", val:fmtP(gc.ha/g.ha), sub:`${fmt(gc.ha,0)} ha em ${plural(gc.n,"contrato","contratos")} (até ${g.S+3})`, ir:"vencimentos"},
+    {k:"--k-laranja", ic:"relogio", rot:"Prazo restante médio", val:fmt(g.Rmed,1), un:"safras", sub:`ponderado pela área · mercado em ${fmt(g.mercado,2)} t/alq`}
+  ].map(kpi).join("");
+  $$("#painelKpis .kpi[data-ir]").forEach(k => k.addEventListener("click", () => location.hash = k.dataset.ir));
+  legendaFaixas($("#legFaixas"));
+  const iPico = anos.reduce((b,a,i)=> a.ha > anos[b].ha ? i : b, 0);
+  barras($("#grafPainel"), anos.map(a => ({v:a.ha, rot:a.rot, rot2:safraRot(a.ano===2040?2040:a.ano), cor:corFaixa(a.fx), rotV:fmt(a.ha,0)+" ha", dicaT:`Vencimentos em ${a.rot}`,
+    dica:[["Contratos", fmt(a.n,0)],["Área", fmt(a.ha,2)+" ha"],["% da área", fmtP(a.pct,1)],["Acumulado", fmtP(a.acum,1)],["Média ponderada", fmt(a.tAlq,2)+" t/alq"],["Valor/safra", fmtRc(a.rAno)]], ano:a.ano})),
+    {titulo:"Área a vencer por ano", rotulo2:true, destaque:[iPico, 0], clique: it => { filtroAno(it.ano); }});
+  const tot = g.ha;
+  $("#painelFaixas").innerHTML = FAIXAS.map(f => { const l = C.filter(c=>c.fx===f.id), a = agregar(l);
+    const anosF = [...new Set(l.map(c=>c.anoFim))].sort(); const faixaAnos = anosF.length ? (anosF[0]===anosF.at(-1)? anosF[0] : anosF[0]+" a "+anosF.at(-1)) : "sem contratos";
+    return `<div class="faixa" style="--t:var(${f.cor})" data-fx="${f.id}" tabindex="0" role="button" aria-label="Ver contratos: ${esc(f.nome)}">
+      <div class="topo"><i></i>${esc(f.nome)}</div><div class="anos">${esc(f.desc)} · ${esc(faixaAnos)}</div>
+      <div class="ha num">${fmt(a.ha,0)}<small>ha</small></div><div class="bar"><span style="width:${(a.ha/tot*100).toFixed(1)}%"></span></div>
+      <div class="lin"><span><b>${fmt(a.n,0)}</b> contratos</span><span><b>${fmtP(a.ha/tot,1)}</b> da área</span></div>
+      <div class="lin"><span>Ponderada</span><b>${fmt(a.tAlq,2)} t/alq</b></div></div>`; }).join("");
+  $$("#painelFaixas .faixa").forEach(el => { const ir = () => filtroFaixa(+el.dataset.fx); el.addEventListener("click", ir); el.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){e.preventDefault(); ir();} }); });
+  const A = achados();
+  $("#painelAlertas").innerHTML = `<div style="display:grid;gap:10px">` + A.slice(0,5).map(a => `<div style="display:flex;gap:10px;align-items:flex-start">
+    <span class="chip" style="--t:var(${a.cor});flex:none"><i></i>${esc(a.nivel)}</span><div style="min-width:0"><b style="font-family:var(--f-display);font-size:15px">${esc(a.titulo)}</b><div style="font-size:12.5px;color:var(--grey)">${a.resumo}</div></div></div>`).join("") + `</div>`;
+  const prox = C.filter(c => c.fx <= 1).sort((a,b)=>a.fim-b.fim || b.ha-a.ha);
+  $("#painelProximos").innerHTML = prox.length ? `<table class="t"><thead><tr><th>Contrato</th><th>Parceiro</th><th class="n">Área ha</th><th class="n">t/alq</th><th>Encerra</th><th>Situação</th></tr></thead><tbody>` +
+    prox.map(c => `<tr><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td><td class="n">${fmt(c.ha,2)}</td><td class="n">${fmt(c.tAlq,2)}</td><td>${fmtD(c.fim)}</td><td>${selo(c)}</td></tr>`).join("") + `</tbody></table>` : `<div class="vazio">Nenhum contrato encerra nas próximas duas safras.</div>`;
+}
+
+function selo(c){
+  if(c.dev) return `<span class="chip" style="--t:var(--f1)"><i></i>${esc(c.obs)}</span>`;
+  if(c.obs) return `<span class="chip" style="--t:var(--k-roxo)"><i></i>${esc(c.obs)}</span>`;
+  return `<span class="chip" style="--t:var(${FAIXAS[c.fx].cor})"><i></i>${esc(FAIXAS[c.fx].nome)}</span>`;
+}
+const corPrio = {A:"var(--f0)", B:"var(--f2)", C:"var(--f4)", D:"var(--f1)"};
+const prioTag = p => `<span class="prio" style="--t:${corPrio[p]}" title="${({A:"Negociar já",B:"Preparar",C:"Acompanhar",D:"Devolução sinalizada"})[p]}">${p==="D"?"D":p}</span>`;
+
+/* ---------- vencimentos ---------- */
+let metricaVenc = "ha";
+function telaVencimentos(){
+  const anos = porAno();
+  legendaFaixas($("#legFaixas2"));
+  const M = {ha:{v:a=>a.ha, f:v=>fmt(v,0), t:"Área (ha) por ano de encerramento", lab:a=>fmt(a.ha,0)+" ha"},
+             n:{v:a=>a.n, f:v=>fmt(v,0), t:"Número de contratos por ano de encerramento", lab:a=>fmt(a.n,0)},
+             t:{v:a=>a.tAno, f:v=>fmt(v/1000,0)+" mil", t:"Toneladas de cana por safra que deixam de ser devidas no ano", lab:a=>fmt(a.tAno/1000,1)+" mil t"},
+             r:{v:a=>a.rAno, f:v=>fmtRc(v).replace("R$ ",""), t:"Valor por safra (R$) dos contratos que encerram no ano", lab:a=>fmtRc(a.rAno)}}[metricaVenc];
+  $("#vencGrafSub").textContent = M.t;
+  const iPico = anos.reduce((b,a,i)=> M.v(a) > M.v(anos[b]) ? i : b, 0);
+  barras($("#grafVenc"), anos.map(a => ({v:M.v(a), rot:a.rot, rot2:safraRot(a.ano), cor:corFaixa(a.fx), rotV:M.lab(a), dicaT:`Vencimentos em ${a.rot}`, ano:a.ano,
+    dica:[["Contratos", fmt(a.n,0)],["Área", fmt(a.ha,2)+" ha"],["% acumulado", fmtP(a.acum,1)],["Ponderada", fmt(a.tAlq,2)+" t/alq"],["Cana/safra", fmt(a.tAno,0)+" t"],["Valor/safra", fmtRc(a.rAno)]]})),
+    {titulo:M.t, rotulo2:true, destaque:[iPico], fmtEixo:M.f, margemEsq: metricaVenc==="r"?70:56, clique: it => filtroAno(it.ano)});
+
+  const tot = agregar(C);
+  let h = `<table class="t" id="tVenc"><thead><tr><th class="fix">Ano</th><th>Última safra</th><th>Faixa</th><th class="n">Contratos</th><th class="n">Área ha</th><th class="n">Área alq</th><th class="n">% área</th><th class="n">% acum.</th>
+    <th class="n">t/alq pond.</th><th class="n">t/ha pond.</th><th class="n">t/safra</th><th class="n">R$/ha/ano</th><th class="n">R$/safra</th><th class="n" title="Toneladas a mais por safra se renovar ao preço do mercado">Renovar a mercado t</th><th class="n">Renovar a mercado R$</th><th class="n">Devolução ha</th></tr></thead><tbody>`;
+  anos.forEach(a => {
+    const imp = a.impT;
+    h += `<tr class="abre" data-ano="${a.ano}"><td class="fix"><b>${esc(a.rot)}</b></td><td>${a.ano===2040?"40/41+":safraRot(a.ano)}</td><td><span class="chip" style="--t:var(${FAIXAS[a.fx].cor})"><i></i>${esc(FAIXAS[a.fx].nome)}</span></td>
+      <td class="n">${fmt(a.n,0)}</td><td class="n">${fmt(a.ha,2)}<span class="bar-mini"><span style="width:${Math.min(100,a.pct/0.25*100).toFixed(0)}%;background:var(${FAIXAS[a.fx].cor})"></span></span></td><td class="n">${fmt(a.alq,2)}</td>
+      <td class="n">${fmtP(a.pct,1)}</td><td class="n">${fmtP(a.acum,1)}</td><td class="n"><b>${fmt(a.tAlq,2)}</b></td><td class="n">${fmt(a.tHa,2)}</td><td class="n">${fmt(a.tAno,0)}</td>
+      <td class="n">${fmtR(a.rHa,0)}</td><td class="n">${fmtR(a.rAno,0)}</td><td class="n" style="color:${imp>0?"var(--bad)":"var(--ok)"}">${imp>0?"+":""}${fmt(imp,0)}</td>
+      <td class="n" style="color:${imp>0?"var(--bad)":"var(--ok)"}">${imp>0?"+":""}${fmtR(imp*G.preco,0)}</td><td class="n">${a.devHa?fmt(a.devHa,2):"–"}</td></tr>`;
+    h += `<tr class="detalhe" data-ano="${a.ano}" hidden><td colspan="16"><div class="tab-rolo">${tabelaMini(a.lista)}</div></td></tr>`;
+  });
+  h += `</tbody><tfoot><tr><td class="fix">Total</td><td></td><td></td><td class="n">${fmt(tot.n,0)}</td><td class="n">${fmt(tot.ha,2)}</td><td class="n">${fmt(tot.alq,2)}</td><td class="n">100%</td><td></td>
+    <td class="n">${fmt(tot.tAlq,2)}</td><td class="n">${fmt(tot.tHa,2)}</td><td class="n">${fmt(tot.tAno,0)}</td><td class="n">${fmtR(tot.rHa,0)}</td><td class="n">${fmtR(tot.rAno,0)}</td>
+    <td class="n">${tot.impT>0?"+":""}${fmt(tot.impT,0)}</td><td class="n">${tot.impT>0?"+":""}${fmtR(tot.impT*G.preco,0)}</td><td class="n">${fmt(tot.devHa,2)}</td></tr></tfoot></table>`;
+  $("#tabVenc").innerHTML = h;
+  $$("#tVenc tr.abre").forEach(tr => tr.addEventListener("click", () => { const d = $(`#tVenc tr.detalhe[data-ano="${tr.dataset.ano}"]`); d.hidden = !d.hidden; tr.classList.toggle("aberto", !d.hidden); }));
+  $("#notaVenc").textContent = `Média ponderada = Σ(t/alq × alq) ÷ Σ alq. "Renovar a mercado" = (mercado ${fmt(G.mercado,2)} t/alq − t/alq atual) × alq, com o mercado medido em ${plural(G.mercadoN,"contrato assinado","contratos assinados")} nos últimos ${P.janela} meses. Valores em R$ a ${fmtR(G.preco)}/t.`;
+}
+function tabelaMini(lista){
+  const tot = lista.reduce((s,c)=>s+c.ha,0);
+  return `<table class="t"><thead><tr><th>Contrato</th><th>Fundo agrícola</th><th>Parceiro</th><th class="n">Área ha</th><th class="n">% do ano</th><th class="n">t/alq</th><th class="n">t/ha</th><th>Início</th><th>Encerra</th><th class="n">R$/ha/ano</th><th class="n">R$/safra</th><th>Prio.</th><th>Situação</th></tr></thead><tbody>` +
+    lista.slice().sort((a,b)=>a.fim-b.fim||b.ha-a.ha).map(c => `<tr><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.fundo)}">${esc(c.prop)} · ${esc(c.fundo)}</td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td>
+      <td class="n">${fmt(c.ha,2)}</td><td class="n">${fmtP(c.ha/tot,1)}</td><td class="n">${fmt(c.tAlq,2)}</td><td class="n">${fmt(c.tHa,2)}</td><td>${fmtD(c.ini)}</td><td>${fmtD(c.fim)}</td>
+      <td class="n">${fmtR(c.rHa,0)}</td><td class="n">${fmtR(c.rAno,0)}</td><td>${prioTag(c.prio)}</td><td>${selo(c)}</td></tr>`).join("") + `</tbody></table>`;
+}
+
+/* ---------- achados (diagnóstico) ---------- */
+function achados(){
+  const g = G, out = [];
+  const anos = porAno();
+  const nesta = C.filter(c=>c.fx===0), gN = agregar(nesta);
+  const prox = C.filter(c=>c.fx===1), gP = agregar(prox);
+  const ate3 = C.filter(c=>c.fx<=2), g3 = agregar(ate3);
+  const pico = anos.reduce((b,a)=> a.ha > b.ha ? a : b, anos[0]);
+  const onda = anos.filter(a => a.ano >= g.S+3 && a.ano <= g.S+6), gOnda = {ha:onda.reduce((s,a)=>s+a.ha,0), n:onda.reduce((s,a)=>s+a.n,0)};
+  if(nesta.length) out.push({nivel:"Crítico", cor:"--f0", titulo:`${plural(gN.n,"contrato encerra","contratos encerram")} nesta safra`,
+    resumo:`<b>${fmt(gN.ha,2)} ha</b> (${fmtP(gN.ha/g.ha,1)} da área) terminam até ${fmtD(new Date(g.S,10,30))}; ${plural(gN.dev,"tem","têm")} devolução sinalizada.`,
+    texto:`<b>${fmt(gN.ha,2)} ha</b> em ${plural(gN.n,"contrato","contratos")} terminam na safra ${safraRot(g.S)}. ${gN.dev ? `${plural(gN.dev,"já tem","já têm")} devolução sinalizada (${fmt(gN.devHa,2)} ha).` : ""} Sem aditivo assinado, a cana que está no campo fica sem cobertura contratual para a próxima colheita.`,
+    rec:"Fechar esta semana a decisão de renovar ou devolver cada contrato; para os que saem, programar destruição de soqueira e laudo de devolução da área."});
+  if(prox.length) out.push({nivel:"Alto", cor:"--f1", titulo:`${fmt(gP.ha,0)} ha vencem na safra ${safraRot(g.S+1)}`,
+    resumo:`${plural(gP.n,"contrato","contratos")}, ponderada de ${fmt(gP.tAlq,2)} t/alq; ${gP.dev ? fmt(gP.devHa,0)+" ha já marcados para devolução." : "nenhum com devolução marcada."}`,
+    texto:`${plural(gP.n,"contrato","contratos")} somam <b>${fmt(gP.ha,2)} ha</b> e pagam ${fmt(gP.tAlq,2)} t/alq. ${gP.dev ? `<b>${fmt(gP.devHa,2)} ha</b> já estão marcados como devolução em 2027.` : ""} A negociação precisa começar antes do plantio de 2027 para não perder a janela de reforma.`,
+    rec:"Abrir a rodada de renovação agora, com proposta-base ao preço de mercado e prazo mínimo de 6 safras para viabilizar reforma."});
+  out.push({nivel: g3.ha/g.ha > .15 ? "Alto" : "Atenção", cor: g3.ha/g.ha > .15 ? "--f1" : "--f2", titulo:`${fmtP(g3.ha/g.ha)} da área vence em até 3 safras`,
+    resumo:`${fmt(g3.ha,0)} ha em ${plural(g3.n,"contrato","contratos")} até ${g.S+3}. Pico em ${pico.rot}, com ${fmt(pico.ha,0)} ha.`,
+    texto:`Até ${g.S+3} encerram <b>${fmt(g3.ha,2)} ha</b> (${plural(g3.n,"contrato","contratos")}). Entre ${g.S+3} e ${g.S+6} vem a onda maior: <b>${fmt(gOnda.ha,0)} ha</b> em ${plural(gOnda.n,"contrato","contratos")}, com pico em ${pico.rot} (${fmt(pico.ha,0)} ha, ${fmtP(pico.pct,1)} da carteira). Renovar tudo no mesmo ano concentra risco de preço e de perda de área.`,
+    rec:`Escalonar as renovações: antecipar parte de ${pico.rot} para os anos anteriores com aditivo de prazo, trocando preço por prazo.`});
+  const velhos = C.filter(c=>c.gap > 0), gV = agregar(velhos);
+  out.push({nivel: gV.impT*g.preco > 0.05*g.rAno ? "Alto" : "Atenção", cor: gV.impT*g.preco > 0.05*g.rAno ? "--f1" : "--f2", titulo:`Mercado pede ${fmt(g.mercado,2)} t/alq, carteira paga ${fmt(g.tAlq,2)}`,
+    resumo:`Renovar todos ao preço novo custaria <b>${fmt(gV.impT,0)} t/safra</b> a mais (${fmtRc(gV.impT*g.preco)}/safra).`,
+    texto:`Os ${plural(g.mercadoN,"contrato assinado","contratos assinados")} nos últimos ${P.janela} meses saíram, na média ponderada, a <b>${fmt(g.mercado,2)} t/alq</b> (${fmt(g.mercado/4.84,2)} t/ha), contra ${fmt(g.tAlq,2)} da carteira. ${plural(gV.n,"contrato está abaixo","contratos estão abaixo")} desse nível (${fmt(gV.ha,0)} ha): levá-los ao mercado acrescenta <b>${fmt(gV.impT,0)} t por safra</b>, ${fmtRc(gV.impT*g.preco)} a ${fmtR(g.preco)}/t.`,
+    rec:"Na renovação, negociar a partir do preço atual do contrato e oferecer prazo ou bônus de produtividade em vez de subir direto ao preço de mercado."});
+  const semRef = C.filter(c=>c.reforma && !c.dev && c.fx>0), gR = agregar(semRef);
+  out.push({nivel:"Atenção", cor:"--f2", titulo:`${fmt(gR.ha,0)} ha sem janela para reforma`,
+    resumo:`${plural(gR.n,"contrato tem","contratos têm")} menos de ${P.ciclo} safras restantes: reformar ali sem renovar é investimento sem retorno.`,
+    texto:`A cana reformada precisa de pelo menos ${P.ciclo} cortes para pagar o plantio. <b>${plural(gR.n,"contrato","contratos")}</b> (${fmt(gR.ha,2)} ha) têm menos que isso pela frente. Cada hectare reformado nessas áreas sem aditivo de prazo vira custo afundado no fim do contrato.`,
+    rec:"Amarrar o plano de reforma ao calendário de contratos: só reformar talhão de contrato com prazo igual ou maior que o ciclo, ou com aditivo assinado."});
+  const col = C.filter(c=>c.colheita), gCo = agregar(col);
+  if(col.length) out.push({nivel:"Atenção", cor:"--f2", titulo:`${plural(gCo.n,"contrato termina","contratos terminam")} no meio da colheita`,
+    resumo:`${fmt(gCo.ha,2)} ha com encerramento antes de 30/11 (ago., set., out. ou 01/11).`,
+    texto:`<b>${plural(gCo.n,"contrato","contratos")}</b> (${fmt(gCo.ha,2)} ha) encerram antes do fim normal da safra em Minas (30/11). Se a colheita atrasar, a usina corta cana em área sem contrato.`,
+    rec:"Padronizar o encerramento em 30/11 por aditivo, ou garantir cláusula de colheita da última safra após o vencimento."});
+  const dev = C.filter(c=>c.dev), gD = agregar(dev);
+  if(dev.length) out.push({nivel:"Alto", cor:"--f1", titulo:`${fmt(gD.ha,2)} ha marcados para devolução`,
+    resumo:`${plural(gD.n,"contrato","contratos")} com DEVOLUÇÃO na observação: a área sai da carteira e precisa ser reposta.`,
+    texto:`<b>${plural(gD.n,"contrato","contratos")}</b> (${fmt(gD.ha,2)} ha, ${fmt(gD.tAno,0)} t/safra) estão marcados para devolução em 2026 e 2027. Junto com eles há ${plural(C.filter(c=>c.cmaa).length,"contrato marcado","contratos marcados")} como CMAA. Essa área sai do raio de abastecimento da indústria.`,
+    rec:"Repor a área com prospecção no mesmo raio médio, priorizando parceiros vizinhos de fazendas já arrendadas."});
+  const top10 = topParceiros().slice(0,10), h10 = top10.reduce((s,p)=>s+p.ha,0);
+  out.push({nivel:"Monitorar", cor:"--f3", titulo:`10 parceiros têm ${fmtP(h10/g.ha)} da área`,
+    resumo:`O maior parceiro tem ${fmt(top10[0]?.ha||0,0)} ha (${fmtP((top10[0]?.ha||0)/g.ha,1)}).`,
+    texto:`Os 10 maiores parceiros somam <b>${fmt(h10,0)} ha</b> (${fmtP(h10/g.ha,1)} da carteira). O maior é ${esc(top10[0]?.parc||"")}, com ${fmt(top10[0]?.ha||0,2)} ha. Perder um deles na renovação tem efeito direto na moagem.`,
+    rec:"Tratar os 10 maiores com gestão de relacionamento dedicada e renovação antecipada, com cláusula de preferência."});
+  const peq = C.filter(c=>c.ha < 10), gPq = agregar(peq);
+  if(peq.length) out.push({nivel:"Monitorar", cor:"--f3", titulo:`${plural(gPq.n,"contrato tem","contratos têm")} menos de 10 ha`,
+    resumo:`Somam só ${fmt(gPq.ha,2)} ha (${fmtP(gPq.ha/g.ha,1)}), mas pesam no administrativo e na operação.`,
+    texto:`<b>${plural(gPq.n,"contrato","contratos")}</b> com menos de 10 ha somam ${fmt(gPq.ha,2)} ha. Talhões pequenos encarecem colheita mecanizada, manobra e controle de pagamento.`,
+    rec:"Avaliar consolidação com áreas vizinhas ou não renovar áreas isoladas abaixo do tamanho mínimo operacional."});
+  const semData = C.filter(c=>!c.ini);
+  if(semData.length) out.push({nivel:"Cadastro", cor:"--k-roxo", titulo:`${plural(semData.length,"contrato sem","contratos sem")} data de assinatura`,
+    resumo:`${semData.map(c=>esc(c.id)).join(", ")}: prazo e decorrido não podem ser calculados.`,
+    texto:`<b>${semData.map(c=>esc(c.id)).join(", ")}</b> estão sem Data Contrato no CHB. Sem ela não há prazo, percentual decorrido nem entrada no cálculo do preço de mercado.`,
+    rec:"Corrigir o cadastro no CHB com a data da via assinada."});
+  return out;
+}
+function telaAnalise(){
+  const g = G;
+  $("#achados").innerHTML = achados().map(a => `<article class="achado" style="--t:var(${a.cor})"><span class="chip" style="--t:var(${a.cor});align-self:flex-start"><i></i>${esc(a.nivel)}</span>
+    <h3>${a.titulo}</h3><p>${a.texto}</p><div class="rec">${esc(a.rec)}</div></article>`).join("");
+  // por ano de assinatura
+  const mapa = new Map(); C.filter(c=>c.ini).forEach(c => { const k=c.ini.getFullYear(); if(!mapa.has(k)) mapa.set(k,[]); mapa.get(k).push(c); });
+  const anos = [...mapa.keys()].sort();
+  $("#legSafra").innerHTML = `<span><i style="--t:var(--leaf)"></i>t/alq ponderada no ano</span><span><i class="linha" style="--t:var(--ref)"></i>Média da carteira</span><span><i class="linha" style="--t:var(--f1)"></i>Mercado (últimos ${P.janela} meses)</span>`;
+  barras($("#grafSafra"), anos.map(a => { const l = mapa.get(a), gg = agregar(l); return {v:gg.tAlq, rot:String(a), rot2:plural(gg.n,"ctr","ctrs"), cor:corVar("--leaf"), rotV:fmt(gg.tAlq,1),
+    dica:[["Contratos", fmt(gg.n,0)],["Área", fmt(gg.ha,2)+" ha"],["Ponderada", fmt(gg.tAlq,2)+" t/alq"],["Por hectare", fmt(gg.tHa,2)+" t/ha"]], dicaT:`Assinados em ${a}`}; }),
+    {titulo:"Negociação por ano de assinatura", rotulo2:true, refs:[{v:g.tAlq, cor:corVar("--ref"), rot:"Carteira "+fmt(g.tAlq,1)},{v:g.mercado, cor:corVar("--f1"), rot:"Mercado "+fmt(g.mercado,1)}], fmtEixo:v=>fmt(v,0), margemEsq:40});
+  // faixas de preço
+  const bandas = [[0,50,"até 50"],[50,60,"50 a 59"],[60,70,"60 a 69"],[70,80,"70 a 79"],[80,999,"80 ou +"]];
+  barras($("#grafPreco"), bandas.map(([a,b,r]) => { const l = C.filter(c=>c.tAlq>=a && c.tAlq<b), gg = agregar(l);
+    return {v:gg.ha, rot:r, rot2:"t/alq", cor: (a+b)/2 < g.mercado ? corVar("--f2") : corVar("--leaf"), rotV:fmt(gg.ha,0)+" ha", dicaT:`${r} t/alq`,
+      dica:[["Contratos", fmt(gg.n,0)],["Área", fmt(gg.ha,2)+" ha"],["% da área", fmtP(gg.ha/g.ha,1)],["Ponderada", fmt(gg.tAlq,2)+" t/alq"]]}; }),
+    {titulo:"Área por faixa de preço", rotulo2:true, destaque:[0,1,2,3,4]});
+  // matriz
+  const lista = C.filter(c=>c.prio!=="D").sort((a,b)=>b.nota-a.nota).slice(0,30);
+  $("#tabPrio").innerHTML = `<table class="t"><thead><tr><th class="fix">Prio.</th><th class="n">Nota</th><th>Contrato</th><th>Parceiro</th><th>Fundo agrícola</th><th class="n">Área ha</th><th class="n">t/alq</th><th class="n">Gap mercado</th><th>Encerra</th><th class="n">Safras rest.</th><th>Faixa</th></tr></thead><tbody>` +
+    lista.map(c => `<tr><td class="fix">${prioTag(c.prio)}</td><td class="n"><b>${c.nota}</b><span class="bar-mini"><span style="width:${c.nota}%;background:${corPrio[c.prio]}"></span></span></td><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td><td class="nome" title="${esc(c.fundo)}">${esc(c.fundo)}</td>
+      <td class="n">${fmt(c.ha,2)}</td><td class="n">${fmt(c.tAlq,2)}</td><td class="n" style="color:${c.gap>0?"var(--bad)":"var(--ok)"}">${c.gap>0?"+":""}${fmt(c.gap,2)}</td><td>${fmtD(c.fim)}</td><td class="n">${c.R}</td><td>${selo(c)}</td></tr>`).join("") + `</tbody></table>`;
+  // plano
+  const S = g.S, gA = agregar(C.filter(c=>c.prio==="A")), gB = agregar(C.filter(c=>c.prio==="B"));
+  const blocos = [
+    ["Imediato · até dez/" + S, "--f0", `Fechar renovação ou saída dos contratos da safra ${safraRot(S)} e dos ${plural(gA.n,"contrato","contratos")} de prioridade A (${fmt(gA.ha,0)} ha). Formalizar devoluções com laudo e programar destruição de soqueira.`],
+    ["Curto · safra " + safraRot(S+1), "--f1", `Rodada de renovação dos vencimentos ${S+1} a ${S+3}. Proposta-base: preço atual do contrato com reajuste escalonado até o mercado (${fmt(g.mercado,1)} t/alq) e prazo mínimo de ${P.ciclo+1} safras.`],
+    ["Médio · " + (S+2) + " a " + (S+4), "--f2", `Antecipar parte da onda de ${S+3} a ${S+6} com aditivos de prazo (${plural(gB.n,"contrato","contratos")} de prioridade B, ${fmt(gB.ha,0)} ha). Amarrar plano de reforma ao calendário de contratos.`],
+    ["Contínuo", "--f3", `Atualizar o preço do kg de ATR a cada circular do Consecana, revisar esta análise a cada nova exportação do CHB e manter o cadastro sem pendências (datas, observações, encerramento em 30/11).`]
+  ];
+  $("#planoAcao").innerHTML = `<div style="display:grid;gap:12px">` + blocos.map(([t,c,x]) => `<div style="display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start">
+    <span style="width:10px;height:10px;margin-top:5px;border-radius:3px;background:var(${c})"></span><div><b style="font-family:var(--f-display);font-size:15px">${esc(t)}</b><div style="font-size:13px;color:var(--grey)">${esc(x)}</div></div></div>`).join("") + `</div>`;
+  // qualidade
+  const q = [];
+  C.forEach(c => { if(!c.ini) q.push([c, "Sem data de contrato"]); if(c.colheita) q.push([c, "Encerra em "+fmtD(c.fim)+" (antes de 30/11)"]);
+    if(c.cmaa) q.push([c, "Observação CMAA: confirmar situação"]); if(c.vencido) q.push([c, "Vencido na data-base"]);
+    if(c.ini && c.prazo < 3) q.push([c, `Prazo curto (${fmt(c.prazo,1)} anos)`]); });
+  $("#tabQualidade").innerHTML = q.length ? `<table class="t"><thead><tr><th>Contrato</th><th>Parceiro</th><th class="n">Área ha</th><th>Pendência</th></tr></thead><tbody>` +
+    q.map(([c,t]) => `<tr><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td><td class="n">${fmt(c.ha,2)}</td><td>${esc(t)}</td></tr>`).join("") + `</tbody></table>` : `<div class="vazio">Nenhuma pendência encontrada.</div>`;
+}
+
+/* ---------- parceiros ---------- */
+function topParceiros(){
+  const mapa = new Map();
+  C.forEach(c => { const k = c.forn; if(!mapa.has(k)) mapa.set(k, []); mapa.get(k).push(c); });
+  return [...mapa.entries()].map(([k,l]) => { const g = agregar(l);
+    return Object.assign(g, {forn:k, parc:l[0].parc, lista:l, prox:l.reduce((m,c)=>c.fim<m?c.fim:m, l[0].fim), ult:l.reduce((m,c)=>c.fim>m?c.fim:m, l[0].fim), fx:Math.min(...l.map(c=>c.fx)), fazendas:new Set(l.map(c=>c.prop)).size}); })
+    .sort((a,b)=>b.ha-a.ha);
+}
+function telaParceiros(){
+  const P2 = topParceiros(), tot = G.ha;
+  barrasH($("#grafParc"), P2.slice(0,15).map(p => ({v:p.ha, rot:p.parc, rotV:fmt(p.ha,0)+" ha", cor:corFaixa(p.fx),
+    dica:[["Contratos", fmt(p.n,0)],["Área", fmt(p.ha,2)+" ha"],["% da carteira", fmtP(p.ha/tot,1)],["Ponderada", fmt(p.tAlq,2)+" t/alq"],["Próximo vencimento", fmtD(p.prox)]], p})),
+    {titulo:"Maiores parceiros", clique: it => { $("#fBusca").value = String(it.p.forn); location.hash = "contratos"; filtrarContratos(); }});
+  const cortes = [1,5,10,20,50];
+  $("#concentracao").innerHTML = `<div style="display:grid;gap:12px">` + cortes.map(n => { const h = P2.slice(0,n).reduce((s,p)=>s+p.ha,0);
+    return `<div><div style="display:flex;justify-content:space-between;font-size:13px"><span>${n===1?"Maior parceiro":n+" maiores"}</span><b class="num">${fmtP(h/tot,1)} · ${fmt(h,0)} ha</b></div>
+      <div class="faixa" style="padding:0;border:0;box-shadow:none;cursor:default;background:none"><div class="bar" style="margin:6px 0 0"><span style="width:${(h/tot*100).toFixed(1)}%;background:var(--leaf)"></span></div></div></div>`; }).join("") +
+    `<p style="margin:4px 0 0;font-size:12.5px;color:var(--grey)">${fmt(P2.length,0)} parceiros no total. ${fmt(P2.filter(p=>p.n>1).length,0)} deles têm mais de um contrato.</p></div>`;
+  desenharParceiros(P2);
+}
+function desenharParceiros(P2){
+  const q = norm($("#buscaParc").value), tot = G.ha;
+  const lista = (P2||topParceiros()).filter(p => !q || norm(p.parc+" "+p.forn).includes(q));
+  let acum = 0;
+  $("#contParc").innerHTML = `<b>${fmt(lista.length,0)}</b> parceiros`;
+  $("#tabParc").innerHTML = `<table class="t"><thead><tr><th class="fix">#</th><th>Parceiro</th><th>Código</th><th class="n">Contratos</th><th class="n">Propriedades</th><th class="n">Área ha</th><th class="n">% área</th><th class="n">% acum.</th><th class="n">t/alq pond.</th><th class="n">t/safra</th><th class="n">R$/safra</th><th>Próximo venc.</th><th>Último venc.</th><th>Faixa</th></tr></thead><tbody>` +
+    lista.map((p,i) => { acum += p.ha; return `<tr><td class="fix mudo">${i+1}</td><td class="nome" title="${esc(p.parc)}"><b>${esc(p.parc)}</b></td><td class="mudo">${esc(p.forn)}</td><td class="n">${p.n}</td><td class="n">${p.fazendas}</td><td class="n">${fmt(p.ha,2)}</td><td class="n">${fmtP(p.ha/tot,2)}</td><td class="n">${q?"–":fmtP(acum/tot,1)}</td>
+      <td class="n">${fmt(p.tAlq,2)}</td><td class="n">${fmt(p.tAno,0)}</td><td class="n">${fmtR(p.rAno,0)}</td><td>${fmtD(p.prox)}</td><td>${fmtD(p.ult)}</td><td><span class="chip" style="--t:var(${FAIXAS[p.fx].cor})"><i></i>${esc(FAIXAS[p.fx].nome)}</span></td></tr>`; }).join("") + `</tbody></table>`;
+}
+
+/* ---------- tabela de contratos ---------- */
+const norm = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+const COLS = [
+  {k:"id", t:"Contrato", fix:true, f:c=>`<b>${esc(c.id)}</b>`},
+  {k:"prop", t:"Propr.", n:true, f:c=>esc(c.prop)},
+  {k:"fundo", t:"Fundo agrícola", f:c=>`<span class="nome" style="display:inline-block" title="${esc(c.fundo)}">${esc(c.fundo)}</span>`},
+  {k:"forn", t:"Fornecedor", n:true, f:c=>esc(c.forn)},
+  {k:"parc", t:"Parceiro agrícola", f:c=>`<span class="nome" style="display:inline-block" title="${esc(c.parc)}">${esc(c.parc)}</span>`},
+  {k:"ha", t:"Área ha", n:true, f:c=>fmt(c.ha,2)},
+  {k:"alq", t:"Área alq", n:true, f:c=>fmt(c.alq,2)},
+  {k:"pctSel", t:"% área", n:true, f:c=>fmtP(c.pctSel,2)},
+  {k:"tAlq", t:"t/alq", n:true, f:c=>`<b>${fmt(c.tAlq,2)}</b>`},
+  {k:"tHa", t:"t/ha", n:true, f:c=>fmt(c.tHa,2)},
+  {k:"contribSel", t:"Contrib. pond.", n:true, f:c=>fmt(c.contribSel,3), title:"t/alq × participação em alqueires: a soma da coluna é a média ponderada"},
+  {k:"tAno", t:"t/safra", n:true, f:c=>fmt(c.tAno,0)},
+  {k:"rHa", t:"R$/ha/ano", n:true, f:c=>fmtR(c.rHa,0)},
+  {k:"rAno", t:"R$/safra", n:true, f:c=>fmtR(c.rAno,0)},
+  {k:"ini", t:"Data contrato", f:c=>fmtD(c.ini)},
+  {k:"fim", t:"Previsão encerr.", f:c=>fmtD(c.fim)},
+  {k:"prazo", t:"Prazo anos", n:true, f:c=>c.prazo==null?"–":fmt(c.prazo,1)},
+  {k:"decorrido", t:"Decorrido", n:true, f:c=>c.decorrido==null?"–":`${fmtP(c.decorrido)}<span class="bar-mini"><span style="width:${(c.decorrido*100).toFixed(0)}%"></span></span>`},
+  {k:"R", t:"Safras rest.", n:true, f:c=>c.R},
+  {k:"rResta", t:"R$ restante", n:true, f:c=>fmtR(c.rResta,0)},
+  {k:"gap", t:"Gap mercado", n:true, f:c=>`<span style="color:${c.gap>0?"var(--bad)":"var(--ok)"}">${c.gap>0?"+":""}${fmt(c.gap,2)}</span>`},
+  {k:"nota", t:"Prio.", f:c=>`${prioTag(c.prio)} <span class="mudo">${c.prio==="D"?"":c.nota}</span>`},
+  {k:"fx", t:"Situação", f:selo}
+];
+let ord = {k:"fim", d:1};
+function preencherFiltros(){
+  const anos = [...new Set(C.map(c=>c.anoFim))].sort();
+  const vA = $("#fAno").value, vF = $("#fFaixa").value;
+  $("#fAno").innerHTML = `<option value="">Todos os anos</option>` + anos.map(a => `<option value="${a}">${a} (${C.filter(c=>c.anoFim===a).length})</option>`).join("") + (anos.some(a=>a>=2040) ? `<option value="2040+">2040 ou depois (${C.filter(c=>c.anoFim>=2040).length})</option>` : "");
+  $("#fFaixa").innerHTML = `<option value="">Todas</option>` + FAIXAS.map(f => `<option value="${f.id}">${esc(f.nome)}</option>`).join("");
+  $("#fAno").value = vA; $("#fFaixa").value = vF;
+}
+function selecionados(){
+  const q = norm($("#fBusca").value), ano = $("#fAno").value, fx = $("#fFaixa").value, pr = $("#fPrio").value, ob = $("#fObs").value;
+  return C.filter(c => (!q || norm([c.id,c.prop,c.fundo,c.forn,c.parc,c.obs].join(" ")).includes(q))
+    && (!ano || (ano === "2040+" ? c.anoFim >= 2040 : c.anoFim === +ano)) && (fx==="" || c.fx === +fx) && (!pr || c.prio === pr)
+    && (!ob || (ob==="obs" && c.obs) || (ob==="dev" && c.dev) || (ob==="colheita" && c.colheita) || (ob==="reforma" && c.reforma) || (ob==="semdata" && !c.ini) || (ob==="abaixo" && c.gap > 0)));
+}
+function filtrarContratos(){
+  const l = selecionados(), g = agregar(l), totAlq = g.alq || 1, totHa = g.ha || 1;
+  l.forEach(c => { c.pctSel = c.ha/totHa; c.contribSel = c.tAlq*c.alq/totAlq; });
+  const k = ord.k, d = ord.d;
+  l.sort((a,b) => { let x=a[k], y=b[k]; if(x instanceof Date) x=+x; if(y instanceof Date) y=+y; if(x==null) return 1; if(y==null) return -1;
+    return (typeof x === "string" ? x.localeCompare(y,"pt-BR") : x - y) * d || a.fim - b.fim; });
+  $("#contContratos").innerHTML = `<b>${fmt(l.length,0)}</b> de ${fmt(C.length,0)} contratos · <b>${fmt(g.ha,2)}</b> ha`;
+  const cab = COLS.map(c => `<th class="${c.n?"n":""} ${c.fix?"fix":""}" data-ord="${c.k}" ${c.title?`title="${esc(c.title)}"`:""}>${esc(c.t)}<span class="seta">${ord.k===c.k?(ord.d>0?"▲":"▼"):""}</span></th>`).join("");
+  const corpo = l.length ? l.map(c => `<tr>${COLS.map(col => `<td class="${col.n?"n":""} ${col.fix?"fix":""}">${col.f(c)}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${COLS.length}"><div class="vazio">Nenhum contrato com esses filtros.</div></td></tr>`;
+  const rod = {id:"Total / ponderado", ha:fmt(g.ha,2), alq:fmt(g.alq,2), pctSel:"100%", tAlq:fmt(g.tAlq,2), tHa:fmt(g.tHa,2), contribSel:fmt(g.tAlq,3), tAno:fmt(g.tAno,0), rHa:fmtR(g.rHa,0), rAno:fmtR(g.rAno,0), R:fmt(g.Rmed,1), rResta:fmtR(g.rResta,0), gap: g.tAlq!=null?fmt(G.mercado-g.tAlq,2):""};
+  $("#tabContratos").innerHTML = `<table class="t" id="tContratos"><thead><tr>${cab}</tr></thead><tbody>${corpo}</tbody><tfoot><tr>${COLS.map(c => `<td class="${c.n?"n":""} ${c.fix?"fix":""}">${rod[c.k]??""}</td>`).join("")}</tr></tfoot></table>`;
+  $$("#tContratos th[data-ord]").forEach(th => th.addEventListener("click", () => { const k = th.dataset.ord; ord = {k, d: ord.k===k ? -ord.d : (["ha","alq","tAlq","tHa","tAno","rHa","rAno","nota","rResta","gap","pctSel","contribSel"].includes(k) ? -1 : 1)}; filtrarContratos(); }));
+  return l;
+}
+function filtroAno(ano){ limparFiltros(); $("#fAno").value = ano===2040 ? "2040+" : String(ano); location.hash = "contratos"; filtrarContratos(); }
+function filtroFaixa(fx){ limparFiltros(); $("#fFaixa").value = String(fx); location.hash = "contratos"; filtrarContratos(); }
+function limparFiltros(){ ["#fBusca","#fAno","#fFaixa","#fPrio","#fObs"].forEach(s => $(s).value = ""); }
+
+/* ---------- exportar CSV ---------- */
+async function exportarCsv(){
+  const l = filtrarContratos();
+  const cab = ["Contrato","Propriedade","Fundo Agrícola","Fornecedor","Parceiro Agrícola","Área Ha","Área Alq","% Área","t/alq","t/ha","Contrib. ponderada","t/safra","R$/ha/ano","R$/safra","Data Contrato","Previsão Encerramento","Prazo anos","% decorrido","Safras restantes","R$ restante","Gap mercado t/alq","Prioridade","Nota","Faixa","Observações"];
+  const n = (v,d=2) => v==null||!isFinite(v) ? "" : v.toFixed(d).replace(".",",");
+  const linhas = l.map(c => [c.id,c.prop,c.fundo,c.forn,c.parc,n(c.ha,4),n(c.alq,4),n(c.pctSel*100,2),n(c.tAlq),n(c.tHa,3),n(c.contribSel,4),n(c.tAno,2),n(c.rHa),n(c.rAno),fmtD(c.ini),fmtD(c.fim),n(c.prazo,1),n(c.decorrido==null?null:c.decorrido*100,1),c.R,n(c.rResta),n(c.gap),c.prio,c.nota,FAIXAS[c.fx].nome,c.obs]);
+  const csv = "﻿" + [cab, ...linhas].map(r => r.map(v => { const s = String(v??""); return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(";")).join("\r\n");
+  const nome = "contratos-arrendamento-" + P.base + ".csv";
+  try {
+    if(window.claude && typeof window.claude.use === "function"){
+      const dl = await window.claude.use("downloads");
+      if(dl){ await dl.save({filename:nome, data:new Blob([csv],{type:"text/csv;charset=utf-8"})}); avisar("Arquivo enviado para download."); return; }
+      try { await navigator.clipboard.writeText(csv); avisar("Download indisponível aqui: CSV copiado para a área de transferência."); } catch(e){ avisar("Não foi possível exportar nesta visualização."); }
+      return;
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"})); a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  } catch(e){ avisar("Exportação cancelada ou recusada."); }
+}
+
+/* ---------- parâmetros ---------- */
+function telaParametros(){
+  $("#modoAtr").checked = P.modo !== "direto"; $("#modoDireto").checked = P.modo === "direto";
+  $("#blocoAtr").hidden = P.modo === "direto"; $("#blocoDireto").hidden = P.modo !== "direto";
+  if(document.activeElement !== $("#pAtr")) $("#pAtr").value = P.atr;
+  if(document.activeElement !== $("#pKg")) $("#pKg").value = P.kg;
+  if(document.activeElement !== $("#pDireto")) $("#pDireto").value = P.direto;
+  $("#pBase").value = P.base; $("#pJanela").value = P.janela; $("#pCiclo").value = P.ciclo;
+  $$(".presets").forEach(box => { const alvo = box.dataset.alvo === "pAtr" ? P.atr : P.kg; $$("button", box).forEach(b => b.classList.toggle("on", Math.abs(+b.dataset.v - +alvo) < 1e-6)); });
+  const p = precoT();
+  $("#precoFinal").textContent = fmtR(p) + "/t";
+  $("#precoFinalTxt").textContent = P.modo === "direto" ? "valor informado" : `${fmt(+P.atr,4)} kg ATR/t × ${fmtR(+P.kg,4)}/kg · ${fmtR(p*G.tHa,0)}/ha/ano na média ponderada · ${fmtR(p*G.tAlq,0)}/alq/ano`;
+  $("#criteriosTxt").innerHTML = `<div><b>Safra corrente:</b> ${safraRot(G.S)} (abril a março; encerramento em 30/11 paga a safra do ano).</div>
+    <div><b>Faixas:</b> ${FAIXAS.map(f=>`<span class="chip" style="--t:var(${f.cor})"><i></i>${esc(f.nome)}</span>`).join(" ")}</div>
+    <div><b>Mercado de referência:</b> ${fmt(G.mercado,2)} t/alq, média ponderada de ${plural(G.mercadoN,"contrato assinado","contratos assinados")} entre ${fmtD(new Date(new Date(G.base).setMonth(G.base.getMonth()-P.janela)))} e ${fmtD(G.base)}.</div>
+    <div><b>Janela de reforma:</b> contrato com menos de ${P.ciclo} safras restantes não deve receber reforma sem aditivo de prazo.</div>`;
+  $("#origemTxt").textContent = C.length ? `Em uso: ${origemTxt || "planilha importada"} · ${plural(C.length,"contrato","contratos")}.` : "Nenhuma planilha carregada.";
+}
+function salvarParam(){ guarda.gravar("arr-param", P); recalcular(); }
+
+/* ---------- importar planilha ---------- */
+function carregarSheetJs(){ return new Promise((ok, falha) => { if(window.XLSX) return ok();
+  const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"; s.onload = ok; s.onerror = () => falha(new Error("Não foi possível carregar o leitor de planilhas.")); document.head.appendChild(s); }); }
+async function importar(arq){
+  const msg = $("#arquivoMsg"); msg.className = ""; msg.textContent = "Lendo…";
+  try {
+    await carregarSheetJs();
+    const wb = XLSX.read(await arq.arrayBuffer(), {type:"array", cellDates:true});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const linhas = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
+    const cab = (linhas[0]||[]).map(norm);
+    const quer = ["contrato","propriedade","fundo agricola","fornecedor","parceiro agricola","area contratada ha","area contratada alq","toneladas (ha/alq)","data contrato","previsao encerramento","observacoes"];
+    const idx = quer.map(q => cab.indexOf(q));
+    const falta = quer.filter((q,i) => idx[i] < 0 && q !== "observacoes");
+    if(falta.length) throw new Error("Faltam colunas: " + falta.join(", ") + ".");
+    const dados = linhas.slice(1).filter(r => r[idx[0]]).map(r => idx.map((i,j) => { let v = i<0 ? null : r[i];
+      if(j===2 && v) v = String(v).replace(/^\s*\d+\s*-\s*/,"").replace(/\s+/g," ").trim();
+      if(j===4 && v) v = String(v).replace(/\s+/g," ").trim().toLowerCase().replace(/(^|\s)\S/g, s => s.toUpperCase());
+      if((j===0||j===10) && v) v = String(v).trim();
+      if((j===8||j===9) && typeof v === "number") v = new Date(Math.round((v - 25569)*86400000) + new Date().getTimezoneOffset()*60000);
+      return v; }));
+    carregar(dados);
+    if(!BRUTO.length) throw new Error("Nenhum contrato com previsão de encerramento foi encontrado.");
+    origemTxt = arq.name; guarda.gravar("arr-dados", {nome:arq.name, dados:dados.map(l => l.map(v => v instanceof Date ? v.toISOString().slice(0,10) : v))});
+    recalcular(); msg.className = "ok-msg"; msg.textContent = `${plural(BRUTO.length,"contrato carregado","contratos carregados")}.`; avisar("Planilha importada.");
+  } catch(e){ msg.className = "erro-msg"; msg.textContent = e.message || "Não foi possível ler a planilha. Confira se é a Relação de Contratos em .xlsx."; }
+}
+
+/* ---------- navegação ---------- */
+const TELAS = ["painel","vencimentos","analise","parceiros","contratos","parametros"];
+const DESENHO = {painel:telaPainel, vencimentos:telaVencimentos, analise:telaAnalise, parceiros:telaParceiros, contratos:filtrarContratos, parametros:telaParametros};
+let atual = "painel";
+function rota(){
+  let t = (location.hash||"").replace("#",""); if(!TELAS.includes(t)) t = "painel";
+  atual = t;
+  $$(".tela").forEach(s => s.classList.toggle("on", s.id === "t-"+t));
+  $$(".m-item").forEach(a => a.classList.toggle("on", a.dataset.tela === t));
+  $("#telaAtual").textContent = $("#t-"+t).dataset.titulo;
+  document.body.classList.remove("menu-aberto");
+  desenharAtual();
+  window.scrollTo({top:0});
+}
+function desenharAtual(){
+  if(!C.length){ semDados(); return; }
+  DESENHO[atual]();
+}
+function semDados(){
+  const alvo = $("#t-"+atual);
+  if(atual === "parametros"){ telaParametros(); return; }
+  if(!$(".boas-vindas", alvo)){
+    const d = document.createElement("div"); d.className = "cartao boas-vindas";
+    d.innerHTML = `<h2>Carregue a Relação de Contratos</h2><p>Importe a planilha exportada do CHB (.xlsx) para montar o painel, os vencimentos por ano, a análise crítica e a tabela. Os dados ficam só neste navegador.</p><a class="btn pri" href="#parametros">Importar planilha</a>`;
+    alvo.querySelector(".cab-tela").after(d);
+  }
+}
+function recalcular(){
+  calcular();
+  $("#barraPreco").textContent = fmt(precoT(), 2);
+  $("#menuRodape").innerHTML = C.length ? `<b>${fmt(G.n,0)}</b> contratos · <b>${fmt(G.ha,0)}</b> ha<br>Data-base ${fmtD(G.base)} · safra ${safraRot(G.S)}<br>${origemTxt ? esc(origemTxt) : ""}` : "Sem planilha carregada";
+  $$(".boas-vindas").forEach(b => { if(C.length) b.remove(); });
+  if(C.length) preencherFiltros();
+  desenharAtual();
+}
+
+let avisoT; function avisar(t){ const el = $("#toast"); el.textContent = t; el.classList.add("on"); clearTimeout(avisoT); avisoT = setTimeout(() => el.classList.remove("on"), 4000); }
+
+/* ---------- eventos ---------- */
+function ligar(){
+  pintarIcones();
+  $("#btnMenu").addEventListener("click", () => { if(innerWidth <= 900) document.body.classList.toggle("menu-aberto"); else location.hash = "painel"; });
+  $("#veu").addEventListener("click", () => document.body.classList.remove("menu-aberto"));
+  addEventListener("keydown", e => { if(e.key === "Escape") document.body.classList.remove("menu-aberto"); });
+  $("#btnTema").addEventListener("click", () => { const r = document.documentElement;
+    const escuro = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    r.dataset.theme = escuro ? "light" : "dark"; guarda.gravar("pcm-tema", r.dataset.theme); desenharAtual(); });
+  $("#btnImportar").addEventListener("click", () => { location.hash = "parametros"; setTimeout(() => $("#arquivo").click(), 60); });
+  $("#vencMetrica").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; metricaVenc = b.dataset.m;
+    $$("#vencMetrica button").forEach(x => x.classList.toggle("on", x===b)); telaVencimentos(); });
+  $("#btnAbrirTodos").addEventListener("click", e => { const det = $$("#tVenc tr.detalhe"); const abrir = det.some(d=>d.hidden);
+    det.forEach(d => d.hidden = !abrir); $$("#tVenc tr.abre").forEach(t => t.classList.toggle("aberto", abrir)); e.currentTarget.textContent = abrir ? "Fechar todos" : "Abrir todos"; });
+  ["#fBusca"].forEach(s => $(s).addEventListener("input", filtrarContratos));
+  ["#fAno","#fFaixa","#fPrio","#fObs"].forEach(s => $(s).addEventListener("change", filtrarContratos));
+  $("#fLimpar").addEventListener("click", () => { limparFiltros(); filtrarContratos(); });
+  $("#btnCsv").addEventListener("click", exportarCsv);
+  $("#buscaParc").addEventListener("input", () => desenharParceiros());
+  $$("[data-filtro-prio]").forEach(a => a.addEventListener("click", ev => { ev.preventDefault(); limparFiltros(); $("#fPrio").value = a.dataset.filtroPrio; location.hash = "contratos"; filtrarContratos(); }));
+  // parâmetros
+  $$('input[name="modo"]').forEach(r => r.addEventListener("change", () => { P.modo = r.value; salvarParam(); }));
+  const num = (sel, k, int) => $(sel).addEventListener("input", () => { const v = parseFloat($(sel).value); if(isFinite(v) && v >= 0){ P[k] = int ? Math.round(v) : v; salvarParam(); } });
+  num("#pAtr","atr"); num("#pKg","kg"); num("#pDireto","direto"); num("#pJanela","janela",true); num("#pCiclo","ciclo",true);
+  $("#pBase").addEventListener("change", () => { if($("#pBase").value){ P.base = $("#pBase").value; salvarParam(); } });
+  $$(".presets button").forEach(b => b.addEventListener("click", () => { const alvo = b.parentElement.dataset.alvo; P[alvo==="pAtr"?"atr":"kg"] = +b.dataset.v; P.modo = "atr"; salvarParam(); }));
+  $("#btnPadrao").addEventListener("click", () => { P = Object.assign({}, PADRAO); salvarParam(); avisar("Parâmetros padrão restaurados."); });
+  $("#arquivo").addEventListener("change", e => { const f = e.target.files[0]; if(f) importar(f); });
+  let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if(["painel","vencimentos","analise","parceiros"].includes(atual) && C.length) desenharAtual(); }, 180); });
+  addEventListener("hashchange", rota);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => desenharAtual());
+}
+
+/* ---------- início ---------- */
+(function iniciar(){
+  const tema = guarda.ler("pcm-tema"); if(tema === "dark" || tema === "light") document.documentElement.dataset.theme = tema;
+  let linhas = DADOS_PLANILHA;
+  const salvo = guarda.ler("arr-dados");
+  if(salvo && Array.isArray(salvo.dados) && salvo.dados.length && (!linhas.length || salvo.nome !== ORIGEM_PLANILHA)){ linhas = salvo.dados; origemTxt = salvo.nome; }
+  carregar(linhas);
+  ligar();
+  calcular();
+  $("#barraPreco").textContent = fmt(precoT(), 2);
+  recalcular();
+  rota();
+})();
+})();
+</script>
+</body></html>
