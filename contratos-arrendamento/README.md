@@ -4,6 +4,8 @@ Painel de análise da carteira de arrendamentos (Relação de Contratos exportad
 
 Telas: Painel executivo, Vencimentos por ano, Análise crítica, Parceiros, Tabela de contratos e Parâmetros.
 
+**Imprimir**: botão em cada tela e na barra. Gera um PDF vetorial (jsPDF), A4 deitado, no padrão de relatório CRV (faixa #23396B, filete #2D8A5A, margem segura de 10 mm), com uma, várias ou todas as telas. A Tabela de contratos sai com os filtros e a ordem da tela. Fora do claude.ai o botão Imprimir abre o PDF já com a impressão; dentro dele o PDF é baixado.
+
 ## Como usar
 
 - `index.html` abre **sem dados**: importe a planilha `.xlsx` em Parâmetros › Atualizar a planilha. Os dados ficam só no navegador.

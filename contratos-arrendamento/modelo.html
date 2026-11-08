@@ -285,6 +285,27 @@ table.t tr.detalhe table.t th{position:static}
   padding:12px 14px;border-radius:12px;background:#0B2A47;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.25);font-size:13px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
 .toast.on{opacity:1;transform:none}
 
+/* Janela de impressão */
+.janela{position:fixed;inset:0;z-index:85;display:grid;place-items:center;padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+.janela[hidden]{display:none}
+.janela-fundo{position:absolute;inset:0;background:rgba(5,15,28,.5)}
+.janela-caixa{position:relative;width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--card);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.janela-caixa .cartao-cab .bico{color:#fff}
+.imp-telas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.imp-telas label,.imp-opcao{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid var(--line-strong);cursor:pointer;
+  font:500 13.5px/1.3 var(--f-body);text-transform:none;letter-spacing:0;color:var(--ink);background:var(--card)}
+.imp-telas label:has(input:checked){border-color:var(--leaf);background:var(--leaf-soft)}
+@media (max-width:480px){.imp-telas{grid-template-columns:minmax(0,1fr)}}
+/* Ctrl+P do navegador: só a tela aberta, sem barra nem menu */
+@media print{
+  .siga-barra,.siga-menu,.veu,.dica,.toast,.janela,.acoes,.filtros,.seg,#btnAbrirTodos{display:none!important}
+  body{background:#fff!important}
+  main{padding:0!important}
+  .tab-rolo,.tab-rolo.alta{max-height:none!important;overflow:visible!important}
+  .cartao,.kpi,.faixa,.achado{box-shadow:none!important;break-inside:avoid}
+  .tela.on{animation:none}
+  @page{size:A4 landscape;margin:10mm}
+}
 @keyframes sobe{from{opacity:.001;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.tela.on,.kpi{animation:none}.kpi,.faixa,.btn{transition:none}}
 
@@ -329,6 +350,7 @@ table.t tr.detalhe table.t th{position:static}
   <div class="barra-esp"></div>
   <a class="barra-preco" href="#parametros" title="Ajustar o preço da tonelada de cana"><span><small>Cana MG · R$/t</small><b id="barraPreco">–</b></span></a>
   <button type="button" class="bico so-pc" id="btnImportar" title="Importar planilha atualizada" aria-label="Importar planilha atualizada"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></button>
+  <button type="button" class="bico" id="btnImprimir" title="Imprimir ou gerar PDF" aria-label="Imprimir ou gerar PDF"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></button>
   <button type="button" class="bico" id="btnTema" title="Tema claro ou escuro" aria-label="Trocar tema"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
   <div class="barra-un"><b>GESTÃO AGRÍCOLA</b><small>Unidade Capinópolis-MG</small></div>
 </header>
@@ -523,6 +545,23 @@ table.t tr.detalhe table.t th{position:static}
   </main>
 </div>
 <div class="dica" id="dica" role="tooltip"></div>
+<div class="janela" id="impressao" hidden>
+  <div class="janela-fundo" data-fecha></div>
+  <div class="janela-caixa" role="dialog" aria-modal="true" aria-labelledby="impTitulo">
+    <div class="cartao-cab"><div><h2 id="impTitulo">Imprimir / gerar PDF</h2><p>A4 deitado, no padrão de relatório CRV, com os números desta tela</p></div>
+      <button type="button" class="bico" data-fecha aria-label="Fechar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="cartao-corpo form">
+      <div class="campo"><label>Telas</label>
+        <div class="imp-telas" id="impTelas"></div>
+        <div class="presets imp-atalhos"><button type="button" id="impTodas">Todas as telas</button><button type="button" id="impSo">Só a tela atual</button></div></div>
+      <label class="imp-opcao"><input type="checkbox" id="impLista"> Em Vencimentos por ano, incluir a lista de contratos de cada ano</label>
+      <div style="font-size:12.5px;color:var(--grey)">A Tabela de contratos sai com os filtros e a ordem que estão na tela. Os valores em R$ usam o preço da tonelada dos Parâmetros.</div>
+      <div class="acoes"><button type="button" class="btn pri" id="impGerar"><span data-ic="baixar"></span>Baixar PDF</button>
+        <button type="button" class="btn" id="impPrint"><span data-ic="impressora"></span>Imprimir</button>
+        <span id="impMsg" style="align-self:center"></span></div>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -570,6 +609,7 @@ const IC = {
   moeda:'<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 3 6 1.6 6 4.6 0 1.3-1.3 2.2-3 2.2-1.4 0-2.6-.6-3-1.6M12 6v2M12 16v2"/>',
   alerta:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
   relogio:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  impressora:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
   tendencia:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>'
 };
 const icone = (n, cls="") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||""}</svg>`;
@@ -579,6 +619,7 @@ function pintarIcones(r=document){ $$("[data-ic]", r).forEach(el => { if(!el.fir
 const hojeISO = (() => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })();
 const PADRAO = {modo:"atr", atr:121.9676, kg:0.8770, direto:106.97, base:hojeISO, janela:24, ciclo:5, baseTon:"alq"};
 let P = Object.assign({}, PADRAO, guarda.ler("arr-param") || {}, {base:hojeISO});   // a data-base volta para hoje a cada abertura
+["atr","kg","direto","janela","ciclo"].forEach(k => { if(P[k] === null || P[k] === "" || !(isFinite(+P[k]) && +P[k] >= 0)) P[k] = PADRAO[k]; });   // valor estragado no navegador volta ao padrão
 const precoT = () => P.modo === "direto" ? +P.direto || 0 : (+P.atr || 0) * (+P.kg || 0);
 
 /* ---------------- faixas de vencimento ---------------- */
@@ -1094,7 +1135,7 @@ function telaParametros(){
   $("#tabRefs").innerHTML = `<table class="t"><thead><tr><th>Coluna da planilha</th><th>Uso no painel</th><th>Referência</th></tr></thead><tbody>` +
     refs.map(([a,b,c]) => `<tr><td><b>${esc(a)}</b></td><td style="white-space:normal;min-width:180px">${esc(b)}</td><td style="white-space:normal">${c}</td></tr>`).join("") + `</tbody></table>`;
   }
-  $$(".presets").forEach(box => { const alvo = box.dataset.alvo === "pAtr" ? P.atr : P.kg; $$("button", box).forEach(b => b.classList.toggle("on", Math.abs(+b.dataset.v - +alvo) < 1e-6)); });
+  $$(".presets[data-alvo]").forEach(box => { const alvo = box.dataset.alvo === "pAtr" ? P.atr : P.kg; $$("button", box).forEach(b => b.classList.toggle("on", Math.abs(+b.dataset.v - +alvo) < 1e-6)); });
   const p = precoT();
   $("#precoFinal").textContent = fmtR(p) + "/t";
   $("#precoFinalTxt").textContent = P.modo === "direto" ? "valor informado" : `${fmt(+P.atr,4)} kg ATR/t × ${fmtR(+P.kg,4)}/kg · ${fmtR(p*G.tHa,0)}/ha/ano na média ponderada · ${fmtR(p*G.tAlq,0)}/alq/ano`;
@@ -1132,6 +1173,344 @@ async function importar(arq){
     origemTxt = arq.name; guarda.gravar("arr-dados", {nome:arq.name, totais:TOTAIS, dados:dados.map(l => l.map(v => v instanceof Date ? v.toISOString().slice(0,10) : v))});
     recalcular(); msg.className = "ok-msg"; msg.textContent = `${plural(BRUTO.length,"contrato carregado","contratos carregados")}.`; avisar("Planilha importada.");
   } catch(e){ msg.className = "erro-msg"; msg.textContent = e.message || "Não foi possível ler a planilha. Confira se é a Relação de Contratos em .xlsx."; }
+}
+
+/* ================= IMPRESSÃO / PDF =================
+   O PDF sai das mesmas contas da tela, desenhado com jsPDF (texto e gráficos vetoriais), A4 deitado,
+   área segura de 10 mm e a casca do relatório CRV (faixa #23396B, filete #2D8A5A, tabelas com cabeçalho azul,
+   linhas alternadas e total em azul). As fontes padrão do jsPDF só têm Latin-1: lat() troca o que não sai. */
+const TELAS_PDF = [
+  {id:"painel", nome:"Painel executivo"}, {id:"vencimentos", nome:"Vencimentos por ano"}, {id:"analise", nome:"Análise crítica"},
+  {id:"parceiros", nome:"Parceiros"}, {id:"contratos", nome:"Tabela de contratos"}, {id:"parametros", nome:"Parâmetros"}];
+const lat = s => String(s ?? "").replace(/[≥]/g,">=").replace(/[≤]/g,"<=").replace(/÷/g,"/").replace(/×/g,"x").replace(/Σ\s?/g,"soma ")
+  .replace(/[–—−]/g,"-").replace(/…/g,"...").replace(/[▲▼›»]/g,"").replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[^\x00-\xFF]/g,"");
+const plano = h => lat(String(h ?? "").replace(/<[^>]+>/g,"").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'"));
+const RGB = {azul:[35,57,107], verde:[45,138,90], borda:[213,219,225], zebra:[244,246,248], cinza:[92,103,119], ink:[21,29,43], branco:[255,255,255],
+  grade:[227,232,240], leaf:[31,99,198], f:[[201,42,42],[232,89,12],[201,138,0],[31,99,198],[43,138,62]], bad:[201,42,42], ok:[38,122,80], roxo:[112,72,232]};
+
+function carregarJsPdf(){ return new Promise((ok, falha) => { if(window.jspdf && window.jspdf.jsPDF) return ok();
+  const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+  s.onload = () => window.jspdf ? ok() : falha(new Error("O gerador de PDF não carregou.")); s.onerror = () => falha(new Error("Não foi possível carregar o gerador de PDF. Confira a conexão e tente de novo."));
+  document.head.appendChild(s); }); }
+
+class RelPdf {
+  constructor(titulo){
+    this.doc = new window.jspdf.jsPDF({orientation:"landscape", unit:"mm", format:"a4", compress:true});
+    this.W = 297; this.H = 210; this.M = 10; this.L = this.W - 2*this.M; this.titulo = titulo;
+    const d = new Date(); this.agora = fmtD(d) + " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+    this.primeira = true; this.y = this.M;
+  }
+  cor(c, tipo="fill"){ const d = this.doc; if(tipo==="fill") d.setFillColor(...c); else if(tipo==="draw") d.setDrawColor(...c); else d.setTextColor(...c); }
+  fonte(tam, peso="normal", c=RGB.ink){ this.doc.setFont("helvetica", peso); this.doc.setFontSize(tam); this.cor(c, "text"); }
+  texto(t, x, y, op={}){ this.doc.text(lat(t), x, y, op); }
+  // faixa azul do relatório: linha pequena em maiúsculas acima do título, data e SIGA-MG à direita
+  faixa(sobre, titulo){
+    const d = this.doc, M = this.M, h = this.primeira ? 17 : 11;
+    this.cor(RGB.azul); d.rect(M, M, this.L, h, "F");
+    this.cor(RGB.verde); d.rect(M, M + h, this.L, 1.1, "F");
+    if(this.primeira){
+      this.fonte(7, "bold", [201,214,236]); this.texto(String(sobre).toUpperCase(), M + 5, M + 6);
+      this.fonte(15, "bold", RGB.branco); this.texto(titulo, M + 5, M + 13);
+    } else { this.fonte(10.5, "bold", RGB.branco); this.texto(titulo, M + 5, M + 7.3); }
+    this.fonte(this.primeira ? 11 : 9, "bold", RGB.branco); this.texto("SIGA-MG", this.W - M - 5, M + (this.primeira ? 7.5 : 5.2), {align:"right"});
+    this.fonte(6.5, "normal", [201,214,236]); this.texto("Atualizado em " + this.agora, this.W - M - 5, M + (this.primeira ? 12.5 : 8.8), {align:"right"});
+    this.y = M + h + 1.1 + 6; this.primeira = false;
+  }
+  pagina(sobre, titulo){ if(this.usada) this.doc.addPage(); this.usada = true; this.primeira = true; this.tituloAtual = titulo; this.faixa(sobre, titulo); }
+  quebra(){ this.doc.addPage(); this.faixa("", this.tituloAtual + " (continuação)"); }
+  cabe(h){ if(this.y + h > this.H - this.M - 7) { this.quebra(); return false; } return true; }
+  secao(t, sub){
+    this.cabe(sub ? 14 : 10);
+    this.fonte(10.5, "bold", RGB.azul); this.texto(t, this.M, this.y);
+    if(sub){ this.fonte(7.5, "normal", RGB.cinza); this.texto(sub, this.M, this.y + 4.2); this.y += 8; } else this.y += 4.5;
+  }
+  paragrafo(t, op={}){
+    const tam = op.tam || 8, larg = op.larg || this.L, x = op.x ?? this.M;
+    this.fonte(tam, op.peso || "normal", op.cor || RGB.ink);
+    const linhas = this.doc.splitTextToSize(lat(t), larg), lh = tam * 0.42;
+    linhas.forEach(l => { this.cabe(lh); this.doc.text(l, x, this.y); this.y += lh; });
+    this.y += op.depois ?? 2;
+  }
+  nota(t){ this.paragrafo(t, {tam:6.8, cor:RGB.cinza, depois:3}); }
+  // indicadores: fundo branco, borda #D5DBE1, rótulo cinza em maiúsculas, valor grande na cor do significado
+  kpis(lista, porLinha=4){
+    const gap = 3, w = (this.L - gap*(porLinha-1)) / porLinha, h = 21;
+    for(let i=0; i<lista.length; i+=porLinha){
+      this.cabe(h + 2);
+      lista.slice(i, i+porLinha).forEach((k, j) => {
+        const x = this.M + j*(w+gap), y = this.y, d = this.doc;
+        this.cor(RGB.branco); this.cor(RGB.borda, "draw"); d.setLineWidth(0.3); d.roundedRect(x, y, w, h, 1.5, 1.5, "FD");
+        this.cor(k.c || RGB.azul); d.rect(x, y + 1.5, 1, h - 3, "F");
+        this.fonte(6.3, "bold", RGB.cinza); this.texto(String(k.rot).toUpperCase(), x + 4, y + 5);
+        this.fonte(15, "bold", k.c || RGB.azul); this.texto(k.val, x + 4, y + 12.6);
+        if(k.un){ const wv = d.getTextWidth(lat(k.val)); this.fonte(7.5, "bold", k.c || RGB.azul); this.texto(k.un, x + 4 + wv + 1.2, y + 12.6); }
+        this.fonte(6.4, "normal", RGB.cinza); const s = d.splitTextToSize(lat(k.sub || ""), w - 7); d.text(s.slice(0,2), x + 4, y + 16.4);
+      });
+      this.y += h + gap;
+    }
+    this.y += 1;
+  }
+  // tabela: cabeçalho azul com texto branco em maiúsculas, linhas alternadas, números à direita, total em azul
+  tabela(cols, linhas, op={}){
+    const d = this.doc, fs = op.fs || 7, lh = op.lh || 4.8, tot = cols.reduce((s,c)=>s+(c.w||1),0);
+    const larg = op.larg || this.L, x0 = op.x ?? this.M;
+    const ws = cols.map(c => (c.w||1)/tot*larg);
+    const corta = (t, w) => { t = lat(t); if(d.getTextWidth(t) <= w) return t; while(t.length > 1 && d.getTextWidth(t + "...") > w) t = t.slice(0,-1); return t + "..."; };
+    const cab = () => {
+      this.cor(RGB.azul); d.rect(x0, this.y, larg, lh + 1, "F");
+      this.fonte(fs - 0.6, "bold", RGB.branco);
+      let x = x0; cols.forEach((c,i) => { const t = corta(String(c.t).toUpperCase(), ws[i] - 2.4);
+        d.text(t, c.a==="r" ? x + ws[i] - 1.2 : x + 1.2, this.y + lh*0.72 + 0.4, {align: c.a==="r" ? "right" : "left"}); x += ws[i]; });
+      this.y += lh + 1;
+    };
+    this.cabe(lh*3); cab();
+    linhas.forEach((l, n) => {
+      if(this.y + lh > this.H - this.M - 7){ this.quebra(); cab(); }
+      if(n % 2 === 1){ this.cor(RGB.zebra); d.rect(x0, this.y, larg, lh, "F"); }
+      let x = x0;
+      cols.forEach((c,i) => { const v = l[i], obj = v && typeof v === "object";
+        this.fonte(fs, obj && v.b ? "bold" : "normal", obj && v.c ? v.c : RGB.ink);
+        const t = corta(obj ? v.t : v, ws[i] - 2.4);
+        d.text(t, c.a==="r" ? x + ws[i] - 1.2 : x + 1.2, this.y + lh*0.7, {align: c.a==="r" ? "right" : "left"}); x += ws[i]; });
+      this.y += lh;
+    });
+    if(op.total){
+      if(this.y + lh + 1 > this.H - this.M - 7){ this.quebra(); cab(); }
+      this.cor(RGB.azul); d.rect(x0, this.y, larg, lh + 1, "F"); this.fonte(fs, "bold", RGB.branco);
+      let x = x0; cols.forEach((c,i) => { const t = corta(op.total[i] ?? "", ws[i] - 2.4);
+        d.text(t, c.a==="r" ? x + ws[i] - 1.2 : x + 1.2, this.y + lh*0.75 + 0.3, {align: c.a==="r" ? "right" : "left"}); x += ws[i]; });
+      this.y += lh + 1;
+    }
+    this.cor(RGB.borda, "draw"); d.setLineWidth(0.2); d.line(x0, this.y, x0 + larg, this.y);
+    this.y += op.depois ?? 4;
+  }
+  // barras verticais na mesma escala da tela
+  barras(itens, op={}){
+    const d = this.doc, h = op.altura || 62, x0 = this.M + 14, w = this.L - 16, topo0 = this.y + 4;
+    this.cabe(h + 14);
+    const yb = this.y + 4 + h, refs = op.refs || [];
+    const maxV = Math.max(...itens.map(i=>i.v), ...refs.map(r=>r.v), 0) || 1, passo = passoBonito(maxV), teto = Math.ceil(maxV/passo)*passo || 1;
+    const Y = v => yb - v/teto*h;
+    d.setLineWidth(0.15);
+    for(let v=0; v<=teto+1e-9; v+=passo){ this.cor(RGB.grade, "draw"); d.line(x0, Y(v), x0 + w, Y(v));
+      this.fonte(6, "normal", RGB.cinza); this.texto(op.fmtEixo ? op.fmtEixo(v) : fmt(v,0), x0 - 1.5, Y(v) + 1, {align:"right"}); }
+    const bw = w / itens.length, lb = Math.min(13, bw*0.62);
+    itens.forEach((it, i) => { const cx = x0 + bw*i + bw/2, alt = Math.max(0, yb - Y(it.v));
+      this.cor(it.cor || RGB.leaf); if(alt > 0) d.rect(cx - lb/2, Y(it.v), lb, alt, "F");
+      if(op.rotulos !== false && it.v > 0){ this.fonte(5.6, "bold", RGB.ink); this.texto(it.lab ?? fmt(it.v,0), cx, Y(it.v) - 1.2, {align:"center"}); }
+      this.fonte(6.2, "normal", RGB.ink); this.texto(it.rot, cx, yb + 3.6, {align:"center"});
+      if(it.rot2){ this.fonte(5.4, "normal", RGB.cinza); this.texto(it.rot2, cx, yb + 6.6, {align:"center"}); } });
+    this.cor([138,148,166], "draw"); d.setLineWidth(0.3); d.line(x0, yb, x0 + w, yb);
+    refs.forEach((r, k) => { this.cor(r.c, "draw"); d.setLineWidth(0.45); d.setLineDashPattern([1.6, 1.1], 0); d.line(x0, Y(r.v), x0 + w, Y(r.v)); d.setLineDashPattern([], 0);
+      this.fonte(6, "bold", r.c); this.texto(r.rot, x0 + w, Y(r.v) + (k===0 ? -1.2 : 3), {align:"right"}); });
+    this.y = yb + 14;
+  }
+  barrasH(itens, op={}){
+    const d = this.doc, lh = 5.2, xr = this.M + (op.rotulo || 62), w = this.L - (op.rotulo || 62) - 24;
+    const maxV = Math.max(...itens.map(i=>i.v), 1);
+    itens.forEach(it => { this.cabe(lh);
+      this.fonte(6.8, "normal", RGB.ink); let t = lat(it.rot); while(t.length > 1 && d.getTextWidth(t) > (op.rotulo||62) - 3) t = t.slice(0,-1);
+      d.text(t, xr - 2, this.y + 3.4, {align:"right"});
+      const bw = Math.max(0.6, it.v/maxV*w); this.cor(it.cor || RGB.leaf); d.rect(xr, this.y + 0.9, bw, 3.4, "F");
+      this.fonte(6.6, "bold", RGB.ink); this.texto(it.lab, xr + bw + 1.5, this.y + 3.4); this.y += lh; });
+    this.y += 3;
+  }
+  legenda(itens){
+    this.cabe(5); let x = this.M; const d = this.doc;
+    itens.forEach(([t, c, linha]) => { this.cor(c); this.cor(c, "draw");
+      if(linha){ d.setLineWidth(0.5); d.setLineDashPattern([1.2,0.8],0); d.line(x, this.y - 1.1, x + 5, this.y - 1.1); d.setLineDashPattern([],0); x += 6.5; }
+      else { d.rect(x, this.y - 2.4, 2.6, 2.6, "F"); x += 4; }
+      this.fonte(6.8, "normal", RGB.cinza); this.texto(t, x, this.y); x += d.getTextWidth(lat(t)) + 6; });
+    this.y += 4;
+  }
+  achado(a, c){
+    const d = this.doc, larg = this.L - 6;
+    this.fonte(8, "normal", RGB.ink); const corpo = d.splitTextToSize(plano(a.texto), larg);
+    this.fonte(7.5, "normal", RGB.ink); const acao = d.splitTextToSize("Ação: " + lat(a.rec), larg - 4);
+    const h = 9 + corpo.length*3.4 + acao.length*3.2 + 4;
+    this.cabe(h + 2);
+    const y = this.y; this.cor(RGB.branco); this.cor(RGB.borda, "draw"); d.setLineWidth(0.25); d.rect(this.M, y, this.L, h, "FD");
+    this.cor(c); d.rect(this.M, y, 1.2, h, "F");
+    const niv = lat(String(a.nivel).toUpperCase());
+    this.fonte(6.3, "bold", c); this.texto(niv, this.M + 4, y + 4.4); const wn = d.getTextWidth(niv);
+    this.fonte(9, "bold", RGB.ink); this.texto(plano(a.titulo), this.M + 4 + wn + 3, y + 4.4);
+    this.fonte(8, "normal", RGB.ink); d.text(corpo, this.M + 4, y + 9);
+    const ya = y + 9 + corpo.length*3.4 + 0.5; this.cor(RGB.zebra); d.rect(this.M + 4, ya - 2.6, larg - 2, acao.length*3.2 + 1.8, "F");
+    this.fonte(7.5, "normal", RGB.azul); d.text(acao, this.M + 6, ya + 0.3);
+    this.y = y + h + 2.5;
+  }
+  fechar(nota){
+    const d = this.doc, n = d.getNumberOfPages();
+    for(let i=1; i<=n; i++){ d.setPage(i);
+      this.cor(RGB.borda, "draw"); d.setLineWidth(0.2); d.line(this.M, this.H - this.M - 4, this.W - this.M, this.H - this.M - 4);
+      this.fonte(6.2, "normal", RGB.cinza);
+      this.texto("Contratos de Arrendamento · SIGA-MG · " + (nota || ""), this.M, this.H - this.M - 0.8);
+      this.texto("Página " + i + " de " + n, this.W - this.M, this.H - this.M - 0.8, {align:"right"}); }
+    return d;
+  }
+}
+const corFx = fx => RGB.f[fx];
+
+function pdfPainel(R){
+  const g = G, anos = porAno(), curto = agregar(C.filter(c=>c.fx<=2));
+  R.pagina("Visão geral · carteira de arrendamentos", "Painel executivo");
+  R.nota(`Posição em ${fmtD(g.base)} · safra corrente ${safraRot(g.S)} · ${plural(g.n,"contrato","contratos")} de ${plural(g.parc,"parceiro","parceiros")}${origemTxt ? " · planilha " + origemTxt : ""}${plano(conferenciaTxt())}`);
+  R.kpis([
+    {rot:"Contratos ativos", val:fmt(g.n,0), sub:`${fmt(g.parc,0)} parceiros · ${fmt(new Set(C.map(c=>c.prop)).size,0)} propriedades`, c:RGB.azul},
+    {rot:"Área arrendada", val:fmt(g.ha,2), un:"ha", sub:`${fmt(g.alq,2)} alq · 1 alq = ${fmt(g.fator,2)} ha na planilha`, c:RGB.ok},
+    {rot:"Toneladas (Ha/Alq) ponderada", val:fmt(g.tAlq,2), un:"t/alq", sub:`${fmt(g.tHa,2)} t/ha · ponderada pela Área Contratada Alq`, c:RGB.azul},
+    {rot:"Cana de arrendamento", val:fmt(g.tAno,0), un:"t/safra", sub:`${fmt(g.tResta,0)} t nas safras futuras dos contratos`, c:[12,133,153]},
+    {rot:"Custo anual estimado", val:fmtRc(g.rAno), sub:`a ${fmtR(g.preco)}/t · ${fmtRc(g.rResta)} até o fim dos contratos`, c:RGB.roxo},
+    {rot:"Custo médio por hectare", val:fmtR(g.rHa,0), un:"/ha/ano", sub:`${fmtR(g.rAno/g.alq,0)} por alqueire/ano`, c:[176,122,0]},
+    {rot:"Vence em até 3 safras", val:fmtP(curto.ha/g.ha), sub:`${fmt(curto.ha,0)} ha em ${plural(curto.n,"contrato","contratos")} (até ${g.S+3})`, c:RGB.bad},
+    {rot:"Prazo restante médio", val:fmt(g.Rmed,1), un:"safras", sub:`ponderado pela área · mercado em ${fmt(g.mercado,2)} t/alq`, c:[217,72,15]}]);
+  R.secao("Área a vencer por ano", "Hectares por ano de encerramento, na cor da faixa de vencimento");
+  R.legenda(FAIXAS.map(f => [f.nome, corFx(f.id)]));
+  R.barras(anos.map(a => ({v:a.ha, rot:a.rot, rot2:safraRot(a.ano), cor:corFx(a.fx), lab:fmt(a.ha,0)})), {altura:52});
+  R.secao("Faixas de vencimento");
+  R.tabela([{t:"Faixa",w:1.3},{t:"Critério",w:1.8},{t:"Anos",w:1},{t:"Contratos",w:.8,a:"r"},{t:"Área Contratada Ha",w:1.1,a:"r"},{t:"% da área",w:.8,a:"r"},{t:"Toneladas (Ha/Alq) pond.",w:1.2,a:"r"},{t:"R$/safra",w:1.1,a:"r"}],
+    FAIXAS.map(f => { const l = C.filter(c=>c.fx===f.id), a = agregar(l), an = [...new Set(l.map(c=>c.anoFim))].sort();
+      return [{t:f.nome, b:true, c:corFx(f.id)}, f.desc, an.length ? (an[0]===an.at(-1) ? String(an[0]) : an[0]+" a "+an.at(-1)) : "-", fmt(a.n,0), fmt(a.ha,2), fmtP(a.ha/g.ha,1), fmt(a.tAlq,2), fmtR(a.rAno,0)]; }),
+    {total:["Total","","",fmt(g.n,0),fmt(g.ha,2),"100%",fmt(g.tAlq,2),fmtR(g.rAno,0)]});
+  R.secao("Pontos de atenção");
+  achados().slice(0,5).forEach(a => R.paragrafo(`${a.nivel.toUpperCase()} · ${plano(a.titulo)}: ${plano(a.resumo)}`, {tam:7.8, depois:1}));
+  R.y += 2;
+  const prox = C.filter(c => c.fx <= 1).sort((a,b)=>a.fim-b.fim || b.ha-a.ha);
+  R.secao("Próximos vencimentos", "Contratos que encerram nas próximas duas safras");
+  R.tabela([{t:"Contrato",w:.8},{t:"Fundo Agrícola",w:2},{t:"Parceiro Agrícola",w:2.4},{t:"Área Contratada Ha",w:1,a:"r"},{t:"Toneladas (Ha/Alq)",w:1,a:"r"},{t:"Previsão Encerramento",w:1.1},{t:"Observações",w:1.3}],
+    prox.map(c => [{t:c.id,b:true}, c.fundo, c.parc, fmt(c.ha,2), fmt(c.ton,2), fmtD(c.fim), c.obs || "-"]));
+}
+function pdfVencimentos(R, comLista){
+  const anos = porAno(), tot = agregar(C), b = P.baseTon==="ha" ? "Ha" : "Alq";
+  R.pagina("Vencimentos · cronograma de encerramento", "Vencimentos por ano");
+  R.secao("Perfil de vencimentos", "Área (ha) por ano de encerramento");
+  R.legenda(FAIXAS.map(f => [f.nome, corFx(f.id)]));
+  R.barras(anos.map(a => ({v:a.ha, rot:a.rot, rot2:plural(a.n,"ctr","ctrs"), cor:corFx(a.fx), lab:fmt(a.ha,0)})), {altura:55});
+  R.secao("Relação anual de vencimentos");
+  const sinal = v => (v>0?"+":"") + fmt(v,0);
+  R.tabela([{t:"Ano",w:.6},{t:"Faixa",w:1.1},{t:"Contratos",w:.7,a:"r"},{t:"Área Contratada Ha",w:1.1,a:"r"},{t:"Área Contratada Alq",w:1.1,a:"r"},{t:"% área",w:.7,a:"r"},{t:"% acum.",w:.7,a:"r"},
+    {t:"Toneladas (Ha/Alq) pond.",w:1.1,a:"r"},{t:"t/ha pond.",w:.8,a:"r"},{t:"t/safra",w:.9,a:"r"},{t:"R$/ha/ano",w:.9,a:"r"},{t:"R$/safra",w:1.1,a:"r"},{t:"Renovar a mercado t",w:1.1,a:"r"},{t:"Renovar a mercado R$",w:1.2,a:"r"},{t:"Devolução ha",w:.8,a:"r"}],
+    anos.map(a => [{t:a.rot,b:true}, {t:FAIXAS[a.fx].nome, c:corFx(a.fx)}, fmt(a.n,0), fmt(a.ha,2), fmt(a.alq,2), fmtP(a.pct,1), fmtP(a.acum,1), {t:fmt(a.tAlq,2),b:true}, fmt(a.tHa,2), fmt(a.tAno,0), fmtR(a.rHa,0), fmtR(a.rAno,0),
+      {t:sinal(a.impT), c:a.impT>0?RGB.bad:RGB.ok}, {t:(a.impT>0?"+":"")+fmtR(a.impT*G.preco,0), c:a.impT>0?RGB.bad:RGB.ok}, a.devHa ? fmt(a.devHa,2) : "-"]),
+    {total:["Total","",fmt(tot.n,0),fmt(tot.ha,2),fmt(tot.alq,2),"100%","",fmt(tot.tAlq,2),fmt(tot.tHa,2),fmt(tot.tAno,0),fmtR(tot.rHa,0),fmtR(tot.rAno,0),sinal(tot.impT),(tot.impT>0?"+":"")+fmtR(tot.impT*G.preco,0),fmt(tot.devHa,2)], fs:6.6});
+  R.nota(`Toneladas (Ha/Alq) ponderada = soma(Toneladas x Área Contratada ${b}) / soma da Área Contratada ${b}. Renovar a mercado = (mercado ${fmt(G.mercado,2)} t/alq - t/alq atual) x alq, com o mercado medido em ${plural(G.mercadoN,"contrato assinado","contratos assinados")} nos últimos ${P.janela} meses. R$ a ${fmtR(G.preco)}/t.`);
+  if(comLista) anos.forEach(a => {
+    R.secao(`Contratos que encerram em ${a.rot}`, `${plural(a.n,"contrato","contratos")} · ${fmt(a.ha,2)} ha · ${fmt(a.tAlq,2)} t/alq ponderada`);
+    R.tabela([{t:"Contrato",w:.8},{t:"Fundo Agrícola",w:2},{t:"Parceiro Agrícola",w:2.3},{t:"Área Contratada Ha",w:1,a:"r"},{t:"Área Contratada Alq",w:1,a:"r"},{t:"Toneladas (Ha/Alq)",w:1,a:"r"},{t:"Data Contrato",w:.9},{t:"Previsão Encerramento",w:1},{t:"R$/safra",w:1,a:"r"},{t:"Prio.",w:.45},{t:"Observações",w:1.2}],
+      a.lista.slice().sort((x,y)=>x.fim-y.fim||y.ha-x.ha).map(c => [{t:c.id,b:true}, c.fundo, c.parc, fmt(c.ha,2), fmt(c.alq,2), fmt(c.ton,2), fmtD(c.ini), fmtD(c.fim), fmtR(c.rAno,0), c.prio, c.obs || "-"]),
+      {total:["Total","","",fmt(a.ha,2),fmt(a.alq,2),fmt(a.tAlq,2),"","",fmtR(a.rAno,0),"",""], fs:6.6});
+  });
+}
+function pdfAnalise(R){
+  const g = G;
+  R.pagina("Análise · visão do gestor de contratos", "Análise crítica da carteira");
+  R.nota("Diagnóstico calculado sobre a planilha e os parâmetros atuais.");
+  const cores = {"--f0":RGB.f[0],"--f1":RGB.f[1],"--f2":RGB.f[2],"--f3":RGB.f[3],"--f4":RGB.f[4],"--k-roxo":RGB.roxo};
+  achados().forEach(a => R.achado(a, cores[a.cor] || RGB.azul));
+  const mapa = new Map(); C.filter(c=>c.ini).forEach(c => { const k=c.ini.getFullYear(); if(!mapa.has(k)) mapa.set(k,[]); mapa.get(k).push(c); });
+  R.secao("Negociação por ano de assinatura", "Toneladas por alqueire, ponderada pela área dos contratos assinados em cada ano");
+  R.legenda([["t/alq ponderada no ano", RGB.leaf], ["Média da carteira", RGB.azul, true], ["Mercado (últimos " + P.janela + " meses)", RGB.f[1], true]]);
+  R.barras([...mapa.keys()].sort().map(a => { const gg = agregar(mapa.get(a)); return {v:gg.tAlq, rot:String(a), rot2:plural(gg.n,"ctr","ctrs"), lab:fmt(gg.tAlq,1)}; }),
+    {altura:45, refs:[{v:g.tAlq, c:RGB.azul, rot:"Carteira "+fmt(g.tAlq,1)},{v:g.mercado, c:RGB.f[1], rot:"Mercado "+fmt(g.mercado,1)}].sort((a,b)=>b.v-a.v)});
+  R.secao("Área por faixa de preço");
+  const bandas = [[0,50,"até 50"],[50,60,"50 a 59"],[60,70,"60 a 69"],[70,80,"70 a 79"],[80,999,"80 ou mais"]];
+  R.tabela([{t:"Faixa de t/alq",w:1.2},{t:"Contratos",w:1,a:"r"},{t:"Área Contratada Ha",w:1.2,a:"r"},{t:"% da área",w:1,a:"r"},{t:"Toneladas (Ha/Alq) pond.",w:1.3,a:"r"},{t:"Frente ao mercado",w:1.4}],
+    bandas.map(([a,b,r]) => { const gg = agregar(C.filter(c=>c.tAlq>=a && c.tAlq<b)); return [r, fmt(gg.n,0), fmt(gg.ha,2), fmtP(gg.ha/g.ha,1), fmt(gg.tAlq,2), (a+b)/2 < g.mercado ? {t:"abaixo do mercado", c:RGB.f[2]} : "no mercado ou acima"]; }), {larg:180});
+  R.secao("Matriz de prioridade de renegociação", "Nota de 0 a 100: 50% urgência, 30% tamanho da área, 20% defasagem frente ao mercado");
+  R.tabela([{t:"Prio.",w:.45},{t:"Nota",w:.45,a:"r"},{t:"Contrato",w:.8},{t:"Parceiro Agrícola",w:2.3},{t:"Fundo Agrícola",w:2},{t:"Área Contratada Ha",w:1,a:"r"},{t:"Toneladas (Ha/Alq)",w:1,a:"r"},{t:"Gap mercado",w:.9,a:"r"},{t:"Previsão Encerramento",w:1.1},{t:"Safras rest.",w:.8,a:"r"},{t:"Faixa",w:1.1}],
+    C.filter(c=>c.prio!=="D").sort((a,b)=>b.nota-a.nota).slice(0,30).map(c => [{t:c.prio,b:true,c:c.prio==="A"?RGB.f[0]:c.prio==="B"?RGB.f[2]:RGB.f[4]}, {t:String(c.nota),b:true}, {t:c.id,b:true}, c.parc, c.fundo, fmt(c.ha,2), fmt(c.ton,2),
+      {t:(c.gap>0?"+":"")+fmt(c.gap,2), c:c.gap>0?RGB.bad:RGB.ok}, fmtD(c.fim), String(c.R), {t:FAIXAS[c.fx].nome, c:corFx(c.fx)}]));
+  R.nota("A = negociar já (nota a partir de 60) · B = preparar (35 a 59) · C = acompanhar. Contratos com devolução sinalizada ficam fora da matriz.");
+  R.secao("Plano de ação por horizonte");
+  $$("#planoAcao > div > div").forEach(b => { const t = b.querySelector("b")?.textContent || "", x = b.querySelector("div")?.textContent || ""; R.paragrafo(t, {tam:8.5, peso:"bold", depois:0.6}); R.paragrafo(x, {tam:7.8, cor:RGB.cinza, depois:2.2}); });
+  R.secao("Qualidade do cadastro", "Pendências encontradas na planilha");
+  const q = []; C.forEach(c => { if(!c.ini) q.push([c,"Sem data de contrato"]); if(c.colheita) q.push([c,"Encerra em "+fmtD(c.fim)+" (antes de 30/11)"]); if(c.cmaa) q.push([c,"Observação CMAA: confirmar situação"]); if(c.vencido) q.push([c,"Vencido na data-base"]); if(c.ini && c.prazo < 3) q.push([c,`Prazo curto (${fmt(c.prazo,1)} anos)`]); });
+  R.tabela([{t:"Contrato",w:.8},{t:"Parceiro Agrícola",w:2.4},{t:"Área Contratada Ha",w:1,a:"r"},{t:"Pendência",w:2.6}], q.map(([c,t]) => [{t:c.id,b:true}, c.parc, fmt(c.ha,2), t]), {larg:200});
+}
+function pdfParceiros(R){
+  const lista = topParceiros(), tot = G.ha;
+  R.pagina("Análise · concentração", "Parceiros agrícolas");
+  R.secao("Maiores parceiros por área", "15 maiores, em hectares, na cor da faixa do próximo vencimento");
+  R.barrasH(lista.slice(0,15).map(p => ({v:p.ha, rot:p.parc, lab:fmt(p.ha,0)+" ha · "+fmtP(p.ha/tot,1), cor:corFx(p.fx)})), {rotulo:75});
+  R.secao("Curva de concentração");
+  R.tabela([{t:"Grupo",w:1.4},{t:"Área Contratada Ha",w:1.2,a:"r"},{t:"% da área",w:1,a:"r"}],
+    [1,5,10,20,50].map(n => { const h = lista.slice(0,n).reduce((s,p)=>s+p.ha,0); return [n===1?"Maior parceiro":n+" maiores", fmt(h,2), fmtP(h/tot,1)]; }), {larg:110});
+  let acum = 0;
+  R.secao("Relação de parceiros", `${fmt(lista.length,0)} parceiros, agrupados pelo código do Fornecedor`);
+  R.tabela([{t:"#",w:.35,a:"r"},{t:"Parceiro Agrícola",w:2.6},{t:"Fornecedor",w:.8},{t:"Contratos",w:.7,a:"r"},{t:"Propr.",w:.6,a:"r"},{t:"Área Contratada Ha",w:1.1,a:"r"},{t:"% área",w:.7,a:"r"},{t:"% acum.",w:.7,a:"r"},{t:"Toneladas (Ha/Alq) pond.",w:1.1,a:"r"},{t:"t/safra",w:.9,a:"r"},{t:"R$/safra",w:1,a:"r"},{t:"Próximo venc.",w:.9},{t:"Faixa",w:1.1}],
+    lista.map((p,i) => { acum += p.ha; return [String(i+1), {t:p.parc,b:true}, String(p.forn), String(p.n), String(p.fazendas), fmt(p.ha,2), fmtP(p.ha/tot,2), fmtP(acum/tot,1), fmt(p.tAlq,2), fmt(p.tAno,0), fmtR(p.rAno,0), fmtD(p.prox), {t:FAIXAS[p.fx].nome, c:corFx(p.fx)}]; }),
+    {total:["","Total","",fmt(G.n,0),"",fmt(tot,2),"100%","",fmt(G.tAlq,2),fmt(G.tAno,0),fmtR(G.rAno,0),"",""], fs:6.6});
+}
+function pdfContratos(R){
+  const l = filtrarContratos(), g = agregar(l);
+  const filtros = [["#fBusca","Busca"],["#fAno","Vencimento"],["#fFaixa","Faixa"],["#fPrio","Prioridade"],["#fObs","Situação"]]
+    .filter(([s]) => $(s).value).map(([s,n]) => n + ": " + ($(s).tagName === "SELECT" ? $(s).selectedOptions[0].textContent : $(s).value));
+  R.pagina("Dados · relação de contratos", "Tabela de contratos");
+  R.nota(`${fmt(l.length,0)} de ${fmt(C.length,0)} contratos · ${fmt(g.ha,2)} ha · ${fmt(g.alq,2)} alq · ${filtros.length ? "filtros da tela: " + filtros.join(" · ") : "sem filtros"} · ordem da tela`);
+  R.tabela([{t:"Contrato",w:.75},{t:"Propr.",w:.5,a:"r"},{t:"Fundo Agrícola",w:1.8},{t:"Fornecedor",w:.7,a:"r"},{t:"Parceiro Agrícola",w:2.1},{t:"Área Contratada Ha",w:1,a:"r"},{t:"Área Contratada Alq",w:1,a:"r"},{t:"Toneladas (Ha/Alq)",w:.95,a:"r"},
+    {t:"Data Contrato",w:.85},{t:"Previsão Encerramento",w:.95},{t:"Observações",w:1.1},{t:"t/safra",w:.85,a:"r"},{t:"R$/ha/ano",w:.85,a:"r"},{t:"R$/safra",w:1,a:"r"},{t:"Safras rest.",w:.6,a:"r"},{t:"Prio.",w:.4},{t:"Faixa",w:1}],
+    l.map(c => [{t:c.id,b:true}, String(c.prop), c.fundo, String(c.forn), c.parc, fmt(c.ha,4), fmt(c.alq,4), {t:fmt(c.ton,2),b:true}, fmtD(c.ini), fmtD(c.fim), c.obs || "", fmt(c.tAno,2), fmtR(c.rHa,0), fmtR(c.rAno,0), String(c.R), c.prio, {t:FAIXAS[c.fx].nome, c:corFx(c.fx)}]),
+    {fs:6.2, lh:4.3, total:["Total","","","","",fmt(g.ha,4),fmt(g.alq,4),fmt(g.tAlq,2),"","","",fmt(g.tAno,2),fmtR(g.rHa,0),fmtR(g.rAno,0),fmt(g.Rmed,1),"",""]});
+  R.nota(`Colunas da planilha com os nomes originais, seguidas das calculadas. t/safra = Toneladas (Ha/Alq) x Área Contratada ${P.baseTon==="ha"?"Ha":"Alq"}. Total de Toneladas (Ha/Alq) ponderado pela área base. Safras restantes não contam a safra corrente. R$ a ${fmtR(G.preco)}/t.`);
+}
+function pdfParametros(R){
+  R.pagina("Configurações · base de cálculo", "Parâmetros de análise");
+  R.secao("Preço da tonelada de cana · Minas Gerais");
+  R.kpis([{rot:"Preço da tonelada", val:fmtR(precoT()), un:"/t", sub:P.modo==="direto" ? "valor informado" : `${fmt(+P.atr,4)} kg ATR/t x ${fmtR(+P.kg,4)}/kg`, c:RGB.azul},
+    {rot:"R$ por hectare/ano", val:fmtR(precoT()*G.tHa,0), sub:"na média ponderada da carteira", c:RGB.ok},
+    {rot:"R$ por alqueire/ano", val:fmtR(precoT()*G.tAlq,0), sub:"na média ponderada da carteira", c:RGB.roxo},
+    {rot:"Data-base", val:fmtD(G.base), sub:`safra corrente ${safraRot(G.S)}`, c:[217,72,15]}]);
+  R.nota("Referência pré-carregada em 08/11/2026: Consecana-SP acumulado da safra 26/27 até agosto (R$ 0,8770/kg) sobre a cana-padrão (121,9676 kg ATR/t). Minas Gerais usa a referência paulista.");
+  R.secao("Base de cálculo da planilha", `Toneladas (Ha/Alq) multiplica a Área Contratada ${P.baseTon==="ha"?"Ha":"Alq"}`);
+  const linhas = $$("#tabRefs tbody tr").map(tr => [...tr.children].map((td,i) => i===0 ? {t:td.textContent, b:true} : td.textContent.replace(/\s+/g," ").trim()));
+  R.tabela([{t:"Coluna da planilha",w:1.3},{t:"Uso no painel",w:2.2},{t:"Referência",w:2.6}], linhas);
+  R.secao("Critérios de análise");
+  $$("#criteriosTxt > div").forEach(d => R.paragrafo(d.textContent.replace(/\s+/g," ").trim(), {tam:7.8, depois:1.2}));
+}
+const PDF_DE = {painel:pdfPainel, vencimentos:pdfVencimentos, analise:pdfAnalise, parceiros:pdfParceiros, contratos:pdfContratos, parametros:pdfParametros};
+
+function abrirImpressao(){
+  if(!C.length){ avisar("Carregue a planilha antes de imprimir."); return; }
+  $$("#impTelas input").forEach(i => i.checked = i.value === atual);
+  $("#impMsg").textContent = ""; $("#impMsg").className = "";
+  $("#impPrint").hidden = !!(window.claude && typeof window.claude.use === "function");
+  $("#impressao").hidden = false; setTimeout(() => $("#impGerar").focus(), 30);
+}
+function fecharImpressao(){ $("#impressao").hidden = true; }
+async function gerarPdf(paraImpressora){
+  const telas = $$("#impTelas input:checked").map(i => i.value);
+  const msg = $("#impMsg");
+  if(!telas.length){ msg.className = "erro-msg"; msg.textContent = "Escolha pelo menos uma tela."; return; }
+  msg.className = ""; msg.textContent = "Gerando o PDF…";
+  try {
+    await carregarJsPdf();
+    const R = new RelPdf("Contratos de Arrendamento");
+    const telaAntes = atual;
+    TELAS_PDF.filter(t => telas.includes(t.id)).forEach(t => {
+      if(t.id === "analise") telaAnalise();        // plano e pendências saem do mesmo desenho da tela
+      if(t.id === "parametros") telaParametros();
+      PDF_DE[t.id](R, $("#impLista").checked);
+    });
+    if(telaAntes !== atual) desenharAtual();
+    const doc = R.fechar(`base ${P.baseTon==="ha"?"Área Contratada Ha":"Área Contratada Alq"} · cana a ${fmtR(G.preco)}/t · posição em ${fmtD(G.base)}`);
+    const nome = `contratos-arrendamento-${telas.length === TELAS_PDF.length ? "completo" : telas.join("-")}-${P.base}.pdf`;
+    if(window.claude && typeof window.claude.use === "function"){
+      const dl = await window.claude.use("downloads");
+      if(!dl){ msg.className = "erro-msg"; msg.textContent = "Esta visualização não permite baixar arquivos. Abra o painel no navegador para gerar o PDF."; return; }
+      try { await dl.save({filename:nome, data:doc.output("blob")}); msg.className = "ok-msg"; msg.textContent = `PDF pronto: ${doc.getNumberOfPages()} páginas.`; }
+      catch(e){ msg.className = e && e.code === "declined" ? "" : "erro-msg"; msg.textContent = e && e.code === "declined" ? "Download cancelado." : "Não foi possível baixar o PDF aqui."; }
+      return;
+    }
+    if(paraImpressora){
+      doc.autoPrint();
+      const w = window.open(doc.output("bloburl"), "_blank");
+      if(!w){ msg.className = "erro-msg"; msg.textContent = "O navegador bloqueou a janela. Libere pop-ups ou use Baixar PDF."; return; }
+      msg.className = "ok-msg"; msg.textContent = "PDF aberto numa aba nova com a impressão.";
+    } else {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(doc.output("blob")); a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+      msg.className = "ok-msg"; msg.textContent = `PDF baixado: ${doc.getNumberOfPages()} páginas.`;
+    }
+  } catch(e){ msg.className = "erro-msg"; msg.textContent = e.message || "Não foi possível gerar o PDF."; }
 }
 
 /* ---------- navegação ---------- */
@@ -1174,10 +1553,21 @@ let avisoT; function avisar(t){ const el = $("#toast"); el.textContent = t; el.c
 
 /* ---------- eventos ---------- */
 function ligar(){
+  // botão Imprimir no topo de cada tela
+  $$(".tela .cab-tela").forEach(cab => { let ac = cab.querySelector(".acoes"); if(!ac){ ac = document.createElement("div"); ac.className = "acoes"; cab.appendChild(ac); }
+    const b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.innerHTML = `<span data-ic="impressora"></span>Imprimir`;
+    b.addEventListener("click", abrirImpressao); ac.prepend(b); });
+  $("#impTelas").innerHTML = TELAS_PDF.map(t => `<label><input type="checkbox" value="${t.id}"> ${esc(t.nome)}</label>`).join("");
+  $("#btnImprimir").addEventListener("click", abrirImpressao);
+  $$("#impressao [data-fecha]").forEach(el => el.addEventListener("click", fecharImpressao));
+  $("#impTodas").addEventListener("click", () => $$("#impTelas input").forEach(i => i.checked = true));
+  $("#impSo").addEventListener("click", () => $$("#impTelas input").forEach(i => i.checked = i.value === atual));
+  $("#impGerar").addEventListener("click", () => gerarPdf(false));
+  $("#impPrint").addEventListener("click", () => gerarPdf(true));
   pintarIcones();
   $("#btnMenu").addEventListener("click", () => { if(innerWidth <= 900) document.body.classList.toggle("menu-aberto"); else location.hash = "painel"; });
   $("#veu").addEventListener("click", () => document.body.classList.remove("menu-aberto"));
-  addEventListener("keydown", e => { if(e.key === "Escape") document.body.classList.remove("menu-aberto"); });
+  addEventListener("keydown", e => { if(e.key === "Escape"){ document.body.classList.remove("menu-aberto"); fecharImpressao(); } });
   $("#btnTema").addEventListener("click", () => { const r = document.documentElement;
     const escuro = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
     r.dataset.theme = escuro ? "light" : "dark"; guarda.gravar("pcm-tema", r.dataset.theme); desenharAtual(); });
@@ -1198,7 +1588,7 @@ function ligar(){
   const num = (sel, k, int) => $(sel).addEventListener("input", () => { const v = parseFloat($(sel).value); if(isFinite(v) && v >= 0){ P[k] = int ? Math.round(v) : v; salvarParam(); } });
   num("#pAtr","atr"); num("#pKg","kg"); num("#pDireto","direto"); num("#pJanela","janela",true); num("#pCiclo","ciclo",true);
   $("#pBase").addEventListener("change", () => { if($("#pBase").value){ P.base = $("#pBase").value; salvarParam(); } });
-  $$(".presets button").forEach(b => b.addEventListener("click", () => { const alvo = b.parentElement.dataset.alvo; P[alvo==="pAtr"?"atr":"kg"] = +b.dataset.v; P.modo = "atr"; salvarParam(); }));
+  $$(".presets[data-alvo] button").forEach(b => b.addEventListener("click", () => { const alvo = b.parentElement.dataset.alvo; P[alvo==="pAtr"?"atr":"kg"] = +b.dataset.v; P.modo = "atr"; salvarParam(); }));
   $("#btnPadrao").addEventListener("click", () => { P = Object.assign({}, PADRAO); salvarParam(); avisar("Parâmetros padrão restaurados."); });
   $("#arquivo").addEventListener("change", e => { const f = e.target.files[0]; if(f) importar(f); });
   let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if(["painel","vencimentos","analise","parceiros"].includes(atual) && C.length) desenharAtual(); }, 180); });
