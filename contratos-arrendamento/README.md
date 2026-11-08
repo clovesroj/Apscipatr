@@ -2,7 +2,7 @@
 
 Painel de análise da carteira de arrendamentos (Relação de Contratos exportada do CHB), no padrão visual do SIGA-MG.
 
-Telas: Painel executivo, Vencimentos por ano, Análise crítica, Parceiros, Tabela de contratos e Parâmetros.
+Telas: Painel executivo, Vencimentos por ano, Preço médio, Análise crítica, Parceiros, Tabela de contratos e Parâmetros.
 
 **Imprimir**: botão em cada tela e na barra. Gera um PDF vetorial (jsPDF), A4 deitado, no padrão de relatório CRV (faixa #23396B, filete #2D8A5A, margem segura de 10 mm), com uma, várias ou todas as telas. A Tabela de contratos sai com os filtros e a ordem da tela. Fora do claude.ai o botão Imprimir abre o PDF já com a impressão; dentro dele o PDF é baixado.
 
@@ -34,3 +34,4 @@ Telas: Painel executivo, Vencimentos por ano, Análise crítica, Parceiros, Tabe
 | Mercado de referência | média ponderada dos contratos assinados nos últimos 24 meses (ajustável) |
 | Prioridade | 50% urgência + 30% tamanho da área + 20% defasagem frente ao mercado; A ≥ 60, B ≥ 35 |
 | Janela de reforma | contrato com menos de 5 safras restantes não recebe reforma sem aditivo |
+| Preço médio | R$/ha = valor pago na safra ÷ soma da Área Contratada Ha; R$/alq = o mesmo valor ÷ soma da Área Contratada Alq (ponderados pela área, em toda a base e em cada recorte) |
