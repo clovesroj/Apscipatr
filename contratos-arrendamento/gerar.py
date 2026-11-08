@@ -40,19 +40,27 @@ def ler(caminho):
                 return None
         def dt(x):
             return x.strftime("%Y-%m-%d") if hasattr(x, "strftime") else (txt(x) or None)
-        fundo = re.sub(r"^\d+\s*-\s*", "", txt(v[2]))
-        saida.append([txt(v[0]), v[1], fundo, v[3], txt(v[4]).title(), num(v[5]), num(v[6]),
+        # textos como estão na planilha (só os espaços de sobra saem)
+        saida.append([txt(v[0]), v[1], txt(v[2]), v[3], txt(v[4]), num(v[5]), num(v[6]),
                       num(v[7]), dt(v[8]), dt(v[9]), txt(v[10])])
-    return saida
+    # linha de total da própria planilha (=SUM nas colunas de área), para conferência na tela
+    totais = None
+    for n, r in enumerate(linhas[1:], start=2):
+        v = [r[i] if i < len(r) else None for i in idx]
+        if not v[0] and isinstance(v[5], (int, float)):
+            totais = {"ha": v[5], "alq": v[6] if isinstance(v[6], (int, float)) else None,
+                      "celHa": f"{chr(65 + idx[5])}{n}", "celAlq": f"{chr(65 + idx[6])}{n}"}
+    return saida, totais
 
 
 def main():
     modelo = (AQUI / "modelo.html").read_text(encoding="utf-8")
     simbolo = (AQUI / "simbolo.svg").read_text(encoding="utf-8").strip()
     if len(sys.argv) >= 3:
-        dados = ler(sys.argv[1])
+        dados, totais = ler(sys.argv[1])
         origem = pathlib.Path(sys.argv[1]).name
         html = (modelo.replace("/*__DADOS__*/[]", json.dumps(dados, ensure_ascii=False, separators=(",", ":")))
+                      .replace("/*__TOTAIS__*/null", json.dumps(totais))
                       .replace("__ORIGEM__", origem.replace('"', "")).replace("__SIMBOLO__", simbolo))
         pathlib.Path(sys.argv[2]).write_text(html, encoding="utf-8")
         print(f"{len(dados)} contratos -> {sys.argv[2]}")

@@ -207,6 +207,7 @@ table.t th{position:sticky;top:0;z-index:2;padding:9px 10px;text-align:left;whit
 table.t th.n,table.t td.n{text-align:right}
 table.t th[data-ord]{cursor:pointer;user-select:none}
 table.t th[data-ord]:hover{color:var(--leaf)}
+table.t th.calc{color:var(--leaf)}
 table.t th .seta{display:inline-block;width:10px;margin-left:3px;opacity:.7}
 table.t td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
 table.t tbody tr:nth-child(even) td{background:var(--zebra)}
@@ -268,6 +269,7 @@ table.t tr.detalhe table.t th{position:static}
 .radio{display:flex;flex-wrap:wrap;gap:8px}
 .radio label{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;border:1px solid var(--line-strong);cursor:pointer;background:var(--card)}
 .radio label:has(input:checked){border-color:var(--leaf);background:var(--leaf-soft)}
+.campo .radio label{font:500 14px/1.3 var(--f-body);text-transform:none;letter-spacing:0;color:var(--ink)}
 .fontes{margin:0;padding-left:18px;font-size:12.5px;color:var(--grey);display:grid;gap:5px}
 .aviso{padding:11px 13px;border-radius:12px;background:var(--warn-bg);color:var(--ink);font-size:12.5px;border:1px solid color-mix(in srgb,var(--warn) 35%,transparent)}
 .sel-arquivo{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
@@ -445,14 +447,14 @@ table.t tr.detalhe table.t th{position:static}
           <div class="contador" id="contContratos"></div>
         </div>
         <div class="tab-rolo alta" id="tabContratos"></div>
-        <p class="nota">t/ha = t/alq ÷ 4,84 (alqueire mineiro). % da área e contribuição ponderada somam 100% e a média ponderada da seleção. Safras restantes não contam a safra corrente. R$ pelo preço da tonelada dos Parâmetros.</p>
+        <p class="nota" id="notaContratos"></p>
       </div>
     </section>
 
     <!-- ===== PARÂMETROS ===== -->
     <section class="tela" id="t-parametros" data-titulo="Parâmetros">
       <div class="cab-tela"><div><div class="sobre">Configurações · base de cálculo</div><h1>Parâmetros de análise</h1>
-        <p>O preço da tonelada converte a negociação em toneladas de cana para reais por hectare. Fica guardado neste navegador.</p></div>
+        <p>Base de cálculo tirada das colunas da planilha e preço da tonelada de cana para converter a negociação em reais por hectare. Fica guardado neste navegador.</p></div>
         <div class="acoes"><button type="button" class="btn" id="btnPadrao">Restaurar padrões</button></div></div>
       <div class="param-grade">
         <div class="cartao">
@@ -486,6 +488,17 @@ table.t tr.detalhe table.t th{position:static}
         </div>
         <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
           <div class="cartao">
+            <div class="cartao-cab"><div><h2>Base de cálculo da planilha</h2><p>Cada número do painel sai destas colunas</p></div></div>
+            <div class="cartao-corpo form">
+              <div class="campo"><label>Coluna Toneladas (Ha/Alq) multiplica</label>
+                <div class="radio" role="radiogroup" aria-label="Base da tonelagem">
+                  <label><input type="radio" name="baseTon" value="alq" id="baseAlq"> Área Contratada Alq</label>
+                  <label><input type="radio" name="baseTon" value="ha" id="baseHa"> Área Contratada Ha</label></div></div>
+              <div id="baseTonTxt" style="font-size:12.5px;color:var(--grey)"></div>
+            </div>
+            <div class="tab-rolo" id="tabRefs"></div>
+          </div>
+          <div class="cartao">
             <div class="cartao-cab"><div><h2>Critérios de análise</h2><p>Usados nas faixas, no mercado de referência e na matriz</p></div></div>
             <div class="cartao-corpo form">
               <div class="linha">
@@ -518,6 +531,8 @@ table.t tr.detalhe table.t th{position:static}
 /* ---------------- dados da planilha ----------------
    [contrato, propriedade, fundo, fornecedor, parceiro, ha, alq, t/alq, data contrato, previsão encerramento, observações] */
 const DADOS_PLANILHA = /*__DADOS__*/[];
+/* linha de total da própria planilha (=SUM das colunas F e G), para conferência */
+const TOTAIS_PLANILHA = /*__TOTAIS__*/null;
 const ORIGEM_PLANILHA = "";
 
 const $ = (s, r=document) => r.querySelector(s);
@@ -562,7 +577,7 @@ function pintarIcones(r=document){ $$("[data-ic]", r).forEach(el => { if(!el.fir
 
 /* ---------------- parâmetros ---------------- */
 const hojeISO = (() => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); })();
-const PADRAO = {modo:"atr", atr:121.9676, kg:0.8770, direto:106.97, base:hojeISO, janela:24, ciclo:5};
+const PADRAO = {modo:"atr", atr:121.9676, kg:0.8770, direto:106.97, base:hojeISO, janela:24, ciclo:5, baseTon:"alq"};
 let P = Object.assign({}, PADRAO, guarda.ler("arr-param") || {}, {base:hojeISO});   // a data-base volta para hoje a cada abertura
 const precoT = () => P.modo === "direto" ? +P.direto || 0 : (+P.atr || 0) * (+P.kg || 0);
 
@@ -582,6 +597,8 @@ let BRUTO = [];      // linhas da planilha
 let C = [];          // contratos calculados
 let G = {};          // agregados globais
 let origemTxt = ORIGEM_PLANILHA;
+let TOTAIS = TOTAIS_PLANILHA;
+let FATOR = 0;   // Σ Área Contratada Ha ÷ Σ Área Contratada Alq, medido na planilha
 
 function data(v){ if(!v) return null; if(v instanceof Date) return isNaN(v) ? null : v;
   const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return new Date(+m[1], +m[2]-1, +m[3]);
@@ -589,7 +606,7 @@ function data(v){ if(!v) return null; if(v instanceof Date) return isNaN(v) ? nu
 
 function carregar(linhas){
   BRUTO = linhas.map(l => ({
-    id:l[0], prop:l[1], fundo:l[2]||"", forn:l[3], parc:l[4]||"", ha:+l[5]||0, alq:+l[6]||0, tAlq:+l[7]||0,
+    id:l[0], prop:l[1], fundo:l[2]||"", forn:l[3], parc:l[4]||"", ha:+l[5]||0, alq:+l[6]||0, ton:+l[7]||0,
     ini:data(l[8]), fim:data(l[9]), obs:(l[10]||"").trim()
   })).filter(c => c.id && c.fim);
 }
@@ -600,35 +617,44 @@ function calcular(){
   const preco = precoT();
   const limiteMercado = new Date(base); limiteMercado.setMonth(limiteMercado.getMonth() - (+P.janela || 24));
   // mercado de referência: contratos assinados na janela
+  // tonelagem por safra = Toneladas (Ha/Alq) × a coluna de área escolhida como base (Área Contratada Alq ou Ha)
+  const tAnoDe = c => c.ton * (P.baseTon === "ha" ? c.ha : c.alq);
   let mA=0, mT=0, mN=0;
-  BRUTO.forEach(c => { if(c.ini && c.ini >= limiteMercado && c.ini <= base){ mA += c.alq; mT += c.alq*c.tAlq; mN++; } });
-  const totHa = BRUTO.reduce((s,c)=>s+c.ha,0), totAlq = BRUTO.reduce((s,c)=>s+c.alq,0), totT = BRUTO.reduce((s,c)=>s+c.alq*c.tAlq,0);
-  const mercado = mA ? mT/mA : totT/totAlq;
+  BRUTO.forEach(c => { if(c.ini && c.ini >= limiteMercado && c.ini <= base){ mA += c.alq; mT += tAnoDe(c); mN++; } });
+  const totHa = BRUTO.reduce((s,c)=>s+c.ha,0), totAlq = BRUTO.reduce((s,c)=>s+c.alq,0), totT = BRUTO.reduce((s,c)=>s+tAnoDe(c),0);
+  FATOR = totAlq ? totHa/totAlq : 0;
+  const mercado = mA ? mT/mA : totT/totAlq;   // t por Área Contratada Alq
   const has = BRUTO.map(c=>c.ha).sort((a,b)=>a-b); const p90 = has[Math.floor(has.length*0.9)] || 1;
   const urg = [1,.85,.65,.5,.35,.2,.1];
   C = BRUTO.map(c => {
-    const fator = c.alq ? c.ha / c.alq : 4.84;
+    const fator = c.alq ? c.ha / c.alq : FATOR;
     const ultima = c.fim.getMonth() >= 3 ? c.fim.getFullYear() : c.fim.getFullYear()-1;
     const R = ultima - S;
     const vencido = c.fim < base;
     const fx = vencido ? 0 : faixaDe(R);
-    const tHa = c.tAlq / fator, tAno = c.tAlq * c.alq;
+    const tAno = tAnoDe(c), tAlq = c.alq ? tAno / c.alq : 0, tHa = c.ha ? tAno / c.ha : 0;
     const prazo = c.ini ? (c.fim - c.ini) / 31557600000 : null;
     const decorrido = c.ini ? Math.min(1, Math.max(0, (base - c.ini) / (c.fim - c.ini))) : null;
     const fimMes = c.fim.getMonth(), fimDia = c.fim.getDate();
     const colheita = !((fimMes === 10 && fimDia >= 30) || fimMes === 11 || fimMes <= 2);
     const dev = /DEVOLU/i.test(c.obs);
-    const gap = mercado - c.tAlq;
+    const gap = mercado - tAlq;
     const u = vencido || R <= 0 ? 1 : (urg[R] ?? 0);
     const nota = Math.round(100*(.5*u + .3*Math.min(1, c.ha/p90) + .2*Math.min(1, Math.max(0, gap)/20)));
     const prio = dev ? "D" : nota >= 60 ? "A" : nota >= 35 ? "B" : "C";
-    return Object.assign({}, c, {fator, ultima, R:Math.max(0,R), vencido, fx, tHa, tAno, prazo, decorrido, colheita, dev,
+    return Object.assign({}, c, {tAlq, fator, ultima, R:Math.max(0,R), vencido, fx, tHa, tAno, prazo, decorrido, colheita, dev,
       cmaa:/CMAA/i.test(c.obs), reforma: R < (+P.ciclo||5), gap, nota, prio, anoFim:c.fim.getFullYear(),
-      pctHa: c.ha/totHa, contrib: c.tAlq * c.alq / totAlq,
-      rHa: tHa*preco, rAno: tAno*preco, tResta: tAno*Math.max(0,R), rResta: tAno*Math.max(0,R)*preco});
+      pctHa: c.ha/totHa, contrib: tAno / totAlq,
+      rHa: tHa*preco, rAlq: tAlq*preco, rAno: tAno*preco, tResta: tAno*Math.max(0,R), rResta: tAno*Math.max(0,R)*preco});
   });
   G = {mercado};
-  G = Object.assign(agregar(C), {base, S, preco, mercado, mercadoN:mN, p90});
+  // a coluna Toneladas (Ha/Alq) ponderada por cada base de área da planilha, e a média simples
+  const pondAlq = totAlq ? BRUTO.reduce((s,c)=>s+c.ton*c.alq,0)/totAlq : null;
+  const pondHa = totHa ? BRUTO.reduce((s,c)=>s+c.ton*c.ha,0)/totHa : null;
+  const simples = BRUTO.length ? BRUTO.reduce((s,c)=>s+c.ton,0)/BRUTO.length : null;
+  const razoes = BRUTO.filter(c=>c.alq).map(c=>c.ha/c.alq);
+  G = Object.assign(agregar(C), {base, S, preco, mercado, mercadoN:mN, p90, pondAlq, pondHa, simples, fator:FATOR,
+    fatorMin:Math.min(...razoes), fatorMax:Math.max(...razoes)});
 }
 
 function agregar(lista){
@@ -734,11 +760,11 @@ function kpi(o, i){
 function telaPainel(){
   const g = G, anos = porAno();
   const curto = C.filter(c => c.fx <= 2), gc = agregar(curto);
-  $("#painelSub").textContent = `Posição em ${fmtD(g.base)} · safra corrente ${safraRot(g.S)} · ${plural(g.n,"contrato","contratos")} de ${plural(g.parc,"parceiro","parceiros")}` + (origemTxt ? ` · planilha ${origemTxt}` : "");
+  $("#painelSub").textContent = `Posição em ${fmtD(g.base)} · safra corrente ${safraRot(g.S)} · ${plural(g.n,"contrato","contratos")} de ${plural(g.parc,"parceiro","parceiros")}` + (origemTxt ? ` · planilha ${origemTxt}` : "") + conferenciaTxt();
   $("#painelKpis").innerHTML = [
     {k:"--k-azul", ic:"doc", rot:"Contratos ativos", val:fmt(g.n,0), sub:`${fmt(g.parc,0)} parceiros · ${fmt(new Set(C.map(c=>c.prop)).size,0)} propriedades`, ir:"contratos"},
-    {k:"--k-verde", ic:"mapa", rot:"Área arrendada", val:fmt(g.ha,2), un:"ha", sub:`${fmt(g.alq,2)} alqueires mineiros (4,84 ha)`},
-    {k:"--k-anil", ic:"balanca", rot:"Média ponderada", val:fmt(g.tAlq,2), un:"t/alq", sub:`${fmt(g.tHa,2)} t/ha por safra, ponderada pela área`},
+    {k:"--k-verde", ic:"mapa", rot:"Área arrendada", val:fmt(g.ha,2), un:"ha", sub:`${fmt(g.alq,2)} alq · 1 alq = ${fmt(g.fator,2)} ha na planilha`},
+    {k:"--k-anil", ic:"balanca", rot:"Toneladas (Ha/Alq) ponderada", val:fmt(g.tAlq,2), un:"t/alq", sub:`${fmt(g.tHa,2)} t/ha · ponderada pela Área Contratada Alq`, ir:"parametros"},
     {k:"--k-teal", ic:"cana", rot:"Cana de arrendamento", val:fmt(g.tAno,0), un:"t/safra", sub:`${fmt(g.tResta,0)} t nas safras futuras dos contratos`},
     {k:"--k-roxo", ic:"moeda", rot:"Custo anual estimado", val:fmtRc(g.rAno), sub:`a ${fmtR(g.preco)}/t · ${fmtRc(g.rResta)} até o fim dos contratos`, ir:"parametros"},
     {k:"--k-ouro", ic:"moeda", rot:"Custo médio por hectare", val:fmtR(g.rHa,0), un:"/ha/ano", sub:`${fmtR(g.rHa*g.tAlq/g.tHa,0)} por alqueire/ano`, ir:"parametros"},
@@ -764,10 +790,15 @@ function telaPainel(){
   $("#painelAlertas").innerHTML = `<div style="display:grid;gap:10px">` + A.slice(0,5).map(a => `<div style="display:flex;gap:10px;align-items:flex-start">
     <span class="chip" style="--t:var(${a.cor});flex:none"><i></i>${esc(a.nivel)}</span><div style="min-width:0"><b style="font-family:var(--f-display);font-size:15px">${esc(a.titulo)}</b><div style="font-size:12.5px;color:var(--grey)">${a.resumo}</div></div></div>`).join("") + `</div>`;
   const prox = C.filter(c => c.fx <= 1).sort((a,b)=>a.fim-b.fim || b.ha-a.ha);
-  $("#painelProximos").innerHTML = prox.length ? `<table class="t"><thead><tr><th>Contrato</th><th>Parceiro</th><th class="n">Área ha</th><th class="n">t/alq</th><th>Encerra</th><th>Situação</th></tr></thead><tbody>` +
-    prox.map(c => `<tr><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td><td class="n">${fmt(c.ha,2)}</td><td class="n">${fmt(c.tAlq,2)}</td><td>${fmtD(c.fim)}</td><td>${selo(c)}</td></tr>`).join("") + `</tbody></table>` : `<div class="vazio">Nenhum contrato encerra nas próximas duas safras.</div>`;
+  $("#painelProximos").innerHTML = prox.length ? `<table class="t"><thead><tr><th>Contrato</th><th>Parceiro Agrícola</th><th class="n">Área Contratada Ha</th><th class="n">Toneladas (Ha/Alq)</th><th>Previsão Encerramento</th><th>Situação</th></tr></thead><tbody>` +
+    prox.map(c => `<tr><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td><td class="n">${fmt(c.ha,2)}</td><td class="n">${fmt(c.ton,2)}</td><td>${fmtD(c.fim)}</td><td>${selo(c)}</td></tr>`).join("") + `</tbody></table>` : `<div class="vazio">Nenhum contrato encerra nas próximas duas safras.</div>`;
 }
 
+function conferenciaTxt(){
+  if(!TOTAIS || TOTAIS.ha==null) return "";
+  const ok = Math.abs(TOTAIS.ha - G.ha) < 0.01 && Math.abs((TOTAIS.alq??G.alq) - G.alq) < 0.01;
+  return ok ? ` · totais conferidos com a linha de total da planilha (${TOTAIS.celHa||"F"}/${TOTAIS.celAlq||"G"})` : ` · atenção: a soma dos contratos difere do total da planilha (${fmt(TOTAIS.ha,2)} ha)`;
+}
 function selo(c){
   if(c.dev) return `<span class="chip" style="--t:var(--f1)"><i></i>${esc(c.obs)}</span>`;
   if(c.obs) return `<span class="chip" style="--t:var(--k-roxo)"><i></i>${esc(c.obs)}</span>`;
@@ -792,8 +823,8 @@ function telaVencimentos(){
     {titulo:M.t, rotulo2:true, destaque:[iPico], fmtEixo:M.f, margemEsq: metricaVenc==="r"?70:56, clique: it => filtroAno(it.ano)});
 
   const tot = agregar(C);
-  let h = `<table class="t" id="tVenc"><thead><tr><th class="fix">Ano</th><th>Última safra</th><th>Faixa</th><th class="n">Contratos</th><th class="n">Área ha</th><th class="n">Área alq</th><th class="n">% área</th><th class="n">% acum.</th>
-    <th class="n">t/alq pond.</th><th class="n">t/ha pond.</th><th class="n">t/safra</th><th class="n">R$/ha/ano</th><th class="n">R$/safra</th><th class="n" title="Toneladas a mais por safra se renovar ao preço do mercado">Renovar a mercado t</th><th class="n">Renovar a mercado R$</th><th class="n">Devolução ha</th></tr></thead><tbody>`;
+  let h = `<table class="t" id="tVenc"><thead><tr><th class="fix">Ano</th><th>Última safra</th><th>Faixa</th><th class="n">Contratos</th><th class="n">Área Contratada Ha</th><th class="n">Área Contratada Alq</th><th class="n">% área</th><th class="n">% acum.</th>
+    <th class="n">Toneladas (Ha/Alq) pond.</th><th class="n">t/ha pond.</th><th class="n">t/safra</th><th class="n">R$/ha/ano</th><th class="n">R$/safra</th><th class="n" title="Toneladas a mais por safra se renovar ao preço do mercado">Renovar a mercado t</th><th class="n">Renovar a mercado R$</th><th class="n">Devolução ha</th></tr></thead><tbody>`;
   anos.forEach(a => {
     const imp = a.impT;
     h += `<tr class="abre" data-ano="${a.ano}"><td class="fix"><b>${esc(a.rot)}</b></td><td>${a.ano===2040?"40/41+":safraRot(a.ano)}</td><td><span class="chip" style="--t:var(${FAIXAS[a.fx].cor})"><i></i>${esc(FAIXAS[a.fx].nome)}</span></td>
@@ -808,13 +839,13 @@ function telaVencimentos(){
     <td class="n">${tot.impT>0?"+":""}${fmt(tot.impT,0)}</td><td class="n">${tot.impT>0?"+":""}${fmtR(tot.impT*G.preco,0)}</td><td class="n">${fmt(tot.devHa,2)}</td></tr></tfoot></table>`;
   $("#tabVenc").innerHTML = h;
   $$("#tVenc tr.abre").forEach(tr => tr.addEventListener("click", () => { const d = $(`#tVenc tr.detalhe[data-ano="${tr.dataset.ano}"]`); d.hidden = !d.hidden; tr.classList.toggle("aberto", !d.hidden); }));
-  $("#notaVenc").textContent = `Média ponderada = Σ(t/alq × alq) ÷ Σ alq. "Renovar a mercado" = (mercado ${fmt(G.mercado,2)} t/alq − t/alq atual) × alq, com o mercado medido em ${plural(G.mercadoN,"contrato assinado","contratos assinados")} nos últimos ${P.janela} meses. Valores em R$ a ${fmtR(G.preco)}/t.`;
+  $("#notaVenc").textContent = `Toneladas (Ha/Alq) ponderada = Σ(Toneladas × Área Contratada ${P.baseTon==="ha"?"Ha":"Alq"}) ÷ Σ Área Contratada ${P.baseTon==="ha"?"Ha":"Alq"}; t/ha = t/safra ÷ Σ Área Contratada Ha. "Renovar a mercado" = (mercado ${fmt(G.mercado,2)} t/alq − t/alq atual) × alq, com o mercado medido em ${plural(G.mercadoN,"contrato assinado","contratos assinados")} nos últimos ${P.janela} meses. Valores em R$ a ${fmtR(G.preco)}/t.`;
 }
 function tabelaMini(lista){
   const tot = lista.reduce((s,c)=>s+c.ha,0);
-  return `<table class="t"><thead><tr><th>Contrato</th><th>Fundo agrícola</th><th>Parceiro</th><th class="n">Área ha</th><th class="n">% do ano</th><th class="n">t/alq</th><th class="n">t/ha</th><th>Início</th><th>Encerra</th><th class="n">R$/ha/ano</th><th class="n">R$/safra</th><th>Prio.</th><th>Situação</th></tr></thead><tbody>` +
-    lista.slice().sort((a,b)=>a.fim-b.fim||b.ha-a.ha).map(c => `<tr><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.fundo)}">${esc(c.prop)} · ${esc(c.fundo)}</td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td>
-      <td class="n">${fmt(c.ha,2)}</td><td class="n">${fmtP(c.ha/tot,1)}</td><td class="n">${fmt(c.tAlq,2)}</td><td class="n">${fmt(c.tHa,2)}</td><td>${fmtD(c.ini)}</td><td>${fmtD(c.fim)}</td>
+  return `<table class="t"><thead><tr><th>Contrato</th><th>Fundo agrícola</th><th>Parceiro</th><th class="n">Área Contratada Ha</th><th class="n">% do ano</th><th class="n">Toneladas (Ha/Alq)</th><th class="n">t/ha</th><th>Data Contrato</th><th>Previsão Encerramento</th><th class="n">R$/ha/ano</th><th class="n">R$/safra</th><th>Prio.</th><th>Situação</th></tr></thead><tbody>` +
+    lista.slice().sort((a,b)=>a.fim-b.fim||b.ha-a.ha).map(c => `<tr><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.fundo)}">${esc(c.fundo)}</td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td>
+      <td class="n">${fmt(c.ha,2)}</td><td class="n">${fmtP(c.ha/tot,1)}</td><td class="n">${fmt(c.ton,2)}</td><td class="n">${fmt(c.tHa,2)}</td><td>${fmtD(c.ini)}</td><td>${fmtD(c.fim)}</td>
       <td class="n">${fmtR(c.rHa,0)}</td><td class="n">${fmtR(c.rAno,0)}</td><td>${prioTag(c.prio)}</td><td>${selo(c)}</td></tr>`).join("") + `</tbody></table>`;
 }
 
@@ -842,7 +873,7 @@ function achados(){
   const velhos = C.filter(c=>c.gap > 0), gV = agregar(velhos);
   out.push({nivel: gV.impT*g.preco > 0.05*g.rAno ? "Alto" : "Atenção", cor: gV.impT*g.preco > 0.05*g.rAno ? "--f1" : "--f2", titulo:`Mercado pede ${fmt(g.mercado,2)} t/alq, carteira paga ${fmt(g.tAlq,2)}`,
     resumo:`Renovar todos ao preço novo custaria <b>${fmt(gV.impT,0)} t/safra</b> a mais (${fmtRc(gV.impT*g.preco)}/safra).`,
-    texto:`Os ${plural(g.mercadoN,"contrato assinado","contratos assinados")} nos últimos ${P.janela} meses saíram, na média ponderada, a <b>${fmt(g.mercado,2)} t/alq</b> (${fmt(g.mercado/4.84,2)} t/ha), contra ${fmt(g.tAlq,2)} da carteira. ${plural(gV.n,"contrato está abaixo","contratos estão abaixo")} desse nível (${fmt(gV.ha,0)} ha): levá-los ao mercado acrescenta <b>${fmt(gV.impT,0)} t por safra</b>, ${fmtRc(gV.impT*g.preco)} a ${fmtR(g.preco)}/t.`,
+    texto:`Os ${plural(g.mercadoN,"contrato assinado","contratos assinados")} nos últimos ${P.janela} meses saíram, na média ponderada, a <b>${fmt(g.mercado,2)} t/alq</b> (${fmt(g.mercado/g.fator,2)} t/ha), contra ${fmt(g.tAlq,2)} da carteira. ${plural(gV.n,"contrato está abaixo","contratos estão abaixo")} desse nível (${fmt(gV.ha,0)} ha): levá-los ao mercado acrescenta <b>${fmt(gV.impT,0)} t por safra</b>, ${fmtRc(gV.impT*g.preco)} a ${fmtR(g.preco)}/t.`,
     rec:"Na renovação, negociar a partir do preço atual do contrato e oferecer prazo ou bônus de produtividade em vez de subir direto ao preço de mercado."});
   const semRef = C.filter(c=>c.reforma && !c.dev && c.fx>0), gR = agregar(semRef);
   out.push({nivel:"Atenção", cor:"--f2", titulo:`${fmt(gR.ha,0)} ha sem janela para reforma`,
@@ -895,9 +926,9 @@ function telaAnalise(){
     {titulo:"Área por faixa de preço", rotulo2:true, destaque:[0,1,2,3,4]});
   // matriz
   const lista = C.filter(c=>c.prio!=="D").sort((a,b)=>b.nota-a.nota).slice(0,30);
-  $("#tabPrio").innerHTML = `<table class="t"><thead><tr><th class="fix">Prio.</th><th class="n">Nota</th><th>Contrato</th><th>Parceiro</th><th>Fundo agrícola</th><th class="n">Área ha</th><th class="n">t/alq</th><th class="n">Gap mercado</th><th>Encerra</th><th class="n">Safras rest.</th><th>Faixa</th></tr></thead><tbody>` +
+  $("#tabPrio").innerHTML = `<table class="t"><thead><tr><th class="fix">Prio.</th><th class="n">Nota</th><th>Contrato</th><th>Parceiro Agrícola</th><th>Fundo Agrícola</th><th class="n">Área Contratada Ha</th><th class="n">Toneladas (Ha/Alq)</th><th class="n">Gap mercado</th><th>Encerra</th><th class="n">Safras rest.</th><th>Faixa</th></tr></thead><tbody>` +
     lista.map(c => `<tr><td class="fix">${prioTag(c.prio)}</td><td class="n"><b>${c.nota}</b><span class="bar-mini"><span style="width:${c.nota}%;background:${corPrio[c.prio]}"></span></span></td><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td><td class="nome" title="${esc(c.fundo)}">${esc(c.fundo)}</td>
-      <td class="n">${fmt(c.ha,2)}</td><td class="n">${fmt(c.tAlq,2)}</td><td class="n" style="color:${c.gap>0?"var(--bad)":"var(--ok)"}">${c.gap>0?"+":""}${fmt(c.gap,2)}</td><td>${fmtD(c.fim)}</td><td class="n">${c.R}</td><td>${selo(c)}</td></tr>`).join("") + `</tbody></table>`;
+      <td class="n">${fmt(c.ha,2)}</td><td class="n">${fmt(c.ton,2)}</td><td class="n" style="color:${c.gap>0?"var(--bad)":"var(--ok)"}">${c.gap>0?"+":""}${fmt(c.gap,2)}</td><td>${fmtD(c.fim)}</td><td class="n">${c.R}</td><td>${selo(c)}</td></tr>`).join("") + `</tbody></table>`;
   // plano
   const S = g.S, gA = agregar(C.filter(c=>c.prio==="A")), gB = agregar(C.filter(c=>c.prio==="B"));
   const blocos = [
@@ -913,7 +944,7 @@ function telaAnalise(){
   C.forEach(c => { if(!c.ini) q.push([c, "Sem data de contrato"]); if(c.colheita) q.push([c, "Encerra em "+fmtD(c.fim)+" (antes de 30/11)"]);
     if(c.cmaa) q.push([c, "Observação CMAA: confirmar situação"]); if(c.vencido) q.push([c, "Vencido na data-base"]);
     if(c.ini && c.prazo < 3) q.push([c, `Prazo curto (${fmt(c.prazo,1)} anos)`]); });
-  $("#tabQualidade").innerHTML = q.length ? `<table class="t"><thead><tr><th>Contrato</th><th>Parceiro</th><th class="n">Área ha</th><th>Pendência</th></tr></thead><tbody>` +
+  $("#tabQualidade").innerHTML = q.length ? `<table class="t"><thead><tr><th>Contrato</th><th>Parceiro Agrícola</th><th class="n">Área Contratada Ha</th><th>Pendência</th></tr></thead><tbody>` +
     q.map(([c,t]) => `<tr><td><b>${esc(c.id)}</b></td><td class="nome" title="${esc(c.parc)}">${esc(c.parc)}</td><td class="n">${fmt(c.ha,2)}</td><td>${esc(t)}</td></tr>`).join("") + `</tbody></table>` : `<div class="vazio">Nenhuma pendência encontrada.</div>`;
 }
 
@@ -942,7 +973,7 @@ function desenharParceiros(P2){
   const lista = (P2||topParceiros()).filter(p => !q || norm(p.parc+" "+p.forn).includes(q));
   let acum = 0;
   $("#contParc").innerHTML = `<b>${fmt(lista.length,0)}</b> parceiros`;
-  $("#tabParc").innerHTML = `<table class="t"><thead><tr><th class="fix">#</th><th>Parceiro</th><th>Código</th><th class="n">Contratos</th><th class="n">Propriedades</th><th class="n">Área ha</th><th class="n">% área</th><th class="n">% acum.</th><th class="n">t/alq pond.</th><th class="n">t/safra</th><th class="n">R$/safra</th><th>Próximo venc.</th><th>Último venc.</th><th>Faixa</th></tr></thead><tbody>` +
+  $("#tabParc").innerHTML = `<table class="t"><thead><tr><th class="fix">#</th><th>Parceiro Agrícola</th><th>Fornecedor</th><th class="n">Contratos</th><th class="n">Propriedades</th><th class="n">Área Contratada Ha</th><th class="n">% área</th><th class="n">% acum.</th><th class="n">t/alq pond.</th><th class="n">t/safra</th><th class="n">R$/safra</th><th>Próximo venc.</th><th>Último venc.</th><th>Faixa</th></tr></thead><tbody>` +
     lista.map((p,i) => { acum += p.ha; return `<tr><td class="fix mudo">${i+1}</td><td class="nome" title="${esc(p.parc)}"><b>${esc(p.parc)}</b></td><td class="mudo">${esc(p.forn)}</td><td class="n">${p.n}</td><td class="n">${p.fazendas}</td><td class="n">${fmt(p.ha,2)}</td><td class="n">${fmtP(p.ha/tot,2)}</td><td class="n">${q?"–":fmtP(acum/tot,1)}</td>
       <td class="n">${fmt(p.tAlq,2)}</td><td class="n">${fmt(p.tAno,0)}</td><td class="n">${fmtR(p.rAno,0)}</td><td>${fmtD(p.prox)}</td><td>${fmtD(p.ult)}</td><td><span class="chip" style="--t:var(${FAIXAS[p.fx].cor})"><i></i>${esc(FAIXAS[p.fx].nome)}</span></td></tr>`; }).join("") + `</tbody></table>`;
 }
@@ -951,28 +982,31 @@ function desenharParceiros(P2){
 const norm = s => String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
 const COLS = [
   {k:"id", t:"Contrato", fix:true, f:c=>`<b>${esc(c.id)}</b>`},
-  {k:"prop", t:"Propr.", n:true, f:c=>esc(c.prop)},
-  {k:"fundo", t:"Fundo agrícola", f:c=>`<span class="nome" style="display:inline-block" title="${esc(c.fundo)}">${esc(c.fundo)}</span>`},
+  {k:"prop", t:"Propriedade", n:true, f:c=>esc(c.prop)},
+  {k:"fundo", t:"Fundo Agrícola", f:c=>`<span class="nome" style="display:inline-block" title="${esc(c.fundo)}">${esc(c.fundo)}</span>`},
   {k:"forn", t:"Fornecedor", n:true, f:c=>esc(c.forn)},
-  {k:"parc", t:"Parceiro agrícola", f:c=>`<span class="nome" style="display:inline-block" title="${esc(c.parc)}">${esc(c.parc)}</span>`},
-  {k:"ha", t:"Área ha", n:true, f:c=>fmt(c.ha,2)},
-  {k:"alq", t:"Área alq", n:true, f:c=>fmt(c.alq,2)},
-  {k:"pctSel", t:"% área", n:true, f:c=>fmtP(c.pctSel,2)},
-  {k:"tAlq", t:"t/alq", n:true, f:c=>`<b>${fmt(c.tAlq,2)}</b>`},
-  {k:"tHa", t:"t/ha", n:true, f:c=>fmt(c.tHa,2)},
-  {k:"contribSel", t:"Contrib. pond.", n:true, f:c=>fmt(c.contribSel,3), title:"t/alq × participação em alqueires: a soma da coluna é a média ponderada"},
-  {k:"tAno", t:"t/safra", n:true, f:c=>fmt(c.tAno,0)},
-  {k:"rHa", t:"R$/ha/ano", n:true, f:c=>fmtR(c.rHa,0)},
-  {k:"rAno", t:"R$/safra", n:true, f:c=>fmtR(c.rAno,0)},
-  {k:"ini", t:"Data contrato", f:c=>fmtD(c.ini)},
-  {k:"fim", t:"Previsão encerr.", f:c=>fmtD(c.fim)},
-  {k:"prazo", t:"Prazo anos", n:true, f:c=>c.prazo==null?"–":fmt(c.prazo,1)},
-  {k:"decorrido", t:"Decorrido", n:true, f:c=>c.decorrido==null?"–":`${fmtP(c.decorrido)}<span class="bar-mini"><span style="width:${(c.decorrido*100).toFixed(0)}%"></span></span>`},
-  {k:"R", t:"Safras rest.", n:true, f:c=>c.R},
-  {k:"rResta", t:"R$ restante", n:true, f:c=>fmtR(c.rResta,0)},
-  {k:"gap", t:"Gap mercado", n:true, f:c=>`<span style="color:${c.gap>0?"var(--bad)":"var(--ok)"}">${c.gap>0?"+":""}${fmt(c.gap,2)}</span>`},
-  {k:"nota", t:"Prio.", f:c=>`${prioTag(c.prio)} <span class="mudo">${c.prio==="D"?"":c.nota}</span>`},
-  {k:"fx", t:"Situação", f:selo}
+  {k:"parc", t:"Parceiro Agrícola", f:c=>`<span class="nome" style="display:inline-block" title="${esc(c.parc)}">${esc(c.parc)}</span>`},
+  {k:"ha", t:"Área Contratada Ha", n:true, f:c=>fmt(c.ha,4)},
+  {k:"alq", t:"Área Contratada Alq", n:true, f:c=>fmt(c.alq,4)},
+  {k:"ton", t:"Toneladas (Ha/Alq)", n:true, f:c=>`<b>${fmt(c.ton,2)}</b>`},
+  {k:"ini", t:"Data Contrato", f:c=>fmtD(c.ini)},
+  {k:"fim", t:"Previsão Encerramento", f:c=>fmtD(c.fim)},
+  {k:"obs", t:"Observações", f:c=>c.obs?`<span class="chip" style="--t:var(${c.dev?"--f1":"--k-roxo"})"><i></i>${esc(c.obs)}</span>`:""},
+  {k:"fator", t:"Ha ÷ Alq", n:true, calc:true, f:c=>fmt(c.fator,4), title:"Área Contratada Ha ÷ Área Contratada Alq da própria linha"},
+  {k:"pctSel", t:"% da área", n:true, calc:true, f:c=>fmtP(c.pctSel,2), title:"Área Contratada Ha ÷ soma da seleção"},
+  {k:"tAno", t:"t/safra", n:true, calc:true, f:c=>fmt(c.tAno,2), title:"Toneladas (Ha/Alq) × Área Contratada (base dos Parâmetros)"},
+  {k:"tHa", t:"t/ha", n:true, calc:true, f:c=>fmt(c.tHa,2), title:"t/safra ÷ Área Contratada Ha"},
+  {k:"contribSel", t:"Contrib. pond.", n:true, calc:true, f:c=>fmt(c.contribSel,3), title:"t/safra ÷ Σ Área Contratada Alq da seleção: a soma da coluna é a média ponderada"},
+  {k:"rHa", t:"R$/ha/ano", n:true, calc:true, f:c=>fmtR(c.rHa,0)},
+  {k:"rAlq", t:"R$/alq/ano", n:true, calc:true, f:c=>fmtR(c.rAlq,0)},
+  {k:"rAno", t:"R$/safra", n:true, calc:true, f:c=>fmtR(c.rAno,0)},
+  {k:"prazo", t:"Prazo anos", n:true, calc:true, f:c=>c.prazo==null?"–":fmt(c.prazo,1)},
+  {k:"decorrido", t:"Decorrido", n:true, calc:true, f:c=>c.decorrido==null?"–":`${fmtP(c.decorrido)}<span class="bar-mini"><span style="width:${(c.decorrido*100).toFixed(0)}%"></span></span>`},
+  {k:"R", t:"Safras rest.", n:true, calc:true, f:c=>c.R},
+  {k:"rResta", t:"R$ restante", n:true, calc:true, f:c=>fmtR(c.rResta,0)},
+  {k:"gap", t:"Gap mercado", n:true, calc:true, f:c=>`<span style="color:${c.gap>0?"var(--bad)":"var(--ok)"}">${c.gap>0?"+":""}${fmt(c.gap,2)}</span>`},
+  {k:"nota", t:"Prio.", calc:true, f:c=>`${prioTag(c.prio)} <span class="mudo">${c.prio==="D"?"":c.nota}</span>`},
+  {k:"fx", t:"Faixa", calc:true, f:c=>`<span class="chip" style="--t:var(${FAIXAS[c.fx].cor})"><i></i>${esc(FAIXAS[c.fx].nome)}</span>`}
 ];
 let ord = {k:"fim", d:1};
 function preencherFiltros(){
@@ -994,12 +1028,14 @@ function filtrarContratos(){
   const k = ord.k, d = ord.d;
   l.sort((a,b) => { let x=a[k], y=b[k]; if(x instanceof Date) x=+x; if(y instanceof Date) y=+y; if(x==null) return 1; if(y==null) return -1;
     return (typeof x === "string" ? x.localeCompare(y,"pt-BR") : x - y) * d || a.fim - b.fim; });
-  $("#contContratos").innerHTML = `<b>${fmt(l.length,0)}</b> de ${fmt(C.length,0)} contratos · <b>${fmt(g.ha,2)}</b> ha`;
-  const cab = COLS.map(c => `<th class="${c.n?"n":""} ${c.fix?"fix":""}" data-ord="${c.k}" ${c.title?`title="${esc(c.title)}"`:""}>${esc(c.t)}<span class="seta">${ord.k===c.k?(ord.d>0?"▲":"▼"):""}</span></th>`).join("");
+  $("#contContratos").innerHTML = `<b>${fmt(l.length,0)}</b> de ${fmt(C.length,0)} contratos · <b>${fmt(g.ha,2)}</b> ha · <b>${fmt(g.alq,2)}</b> alq`;
+  const bAlq = P.baseTon !== "ha";
+  $("#notaContratos").textContent = `Colunas com nome em preto vêm da planilha, com os nomes originais; as em azul são calculadas. t/safra = Toneladas (Ha/Alq) × Área Contratada ${bAlq?"Alq":"Ha"}. A linha de total traz Toneladas (Ha/Alq) ponderada pela Área Contratada ${bAlq?"Alq":"Ha"}, e a soma de "Contrib. pond." dá o mesmo número. Safras restantes não contam a safra corrente. R$ pelo preço da tonelada dos Parâmetros (${fmtR(G.preco)}/t).`;
+  const cab = COLS.map(c => `<th class="${c.n?"n":""} ${c.fix?"fix":""} ${c.calc?"calc":""}" data-ord="${c.k}" ${c.title?`title="${esc(c.title)}"`:""}>${esc(c.t)}<span class="seta">${ord.k===c.k?(ord.d>0?"▲":"▼"):""}</span></th>`).join("");
   const corpo = l.length ? l.map(c => `<tr>${COLS.map(col => `<td class="${col.n?"n":""} ${col.fix?"fix":""}">${col.f(c)}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${COLS.length}"><div class="vazio">Nenhum contrato com esses filtros.</div></td></tr>`;
-  const rod = {id:"Total / ponderado", ha:fmt(g.ha,2), alq:fmt(g.alq,2), pctSel:"100%", tAlq:fmt(g.tAlq,2), tHa:fmt(g.tHa,2), contribSel:fmt(g.tAlq,3), tAno:fmt(g.tAno,0), rHa:fmtR(g.rHa,0), rAno:fmtR(g.rAno,0), R:fmt(g.Rmed,1), rResta:fmtR(g.rResta,0), gap: g.tAlq!=null?fmt(G.mercado-g.tAlq,2):""};
+  const rod = {id:"Total / ponderado", ha:fmt(g.ha,4), alq:fmt(g.alq,4), ton:fmt(g.tAlq,2), fator:g.alq?fmt(g.ha/g.alq,4):"", pctSel:"100%", tHa:fmt(g.tHa,2), contribSel:fmt(g.tAlq,3), tAno:fmt(g.tAno,2), rHa:fmtR(g.rHa,0), rAlq:fmtR(g.rAno/g.alq,0), rAno:fmtR(g.rAno,0), R:fmt(g.Rmed,1), rResta:fmtR(g.rResta,0), gap: g.tAlq!=null?fmt(G.mercado-g.tAlq,2):""};
   $("#tabContratos").innerHTML = `<table class="t" id="tContratos"><thead><tr>${cab}</tr></thead><tbody>${corpo}</tbody><tfoot><tr>${COLS.map(c => `<td class="${c.n?"n":""} ${c.fix?"fix":""}">${rod[c.k]??""}</td>`).join("")}</tr></tfoot></table>`;
-  $$("#tContratos th[data-ord]").forEach(th => th.addEventListener("click", () => { const k = th.dataset.ord; ord = {k, d: ord.k===k ? -ord.d : (["ha","alq","tAlq","tHa","tAno","rHa","rAno","nota","rResta","gap","pctSel","contribSel"].includes(k) ? -1 : 1)}; filtrarContratos(); }));
+  $$("#tContratos th[data-ord]").forEach(th => th.addEventListener("click", () => { const k = th.dataset.ord; ord = {k, d: ord.k===k ? -ord.d : (["ha","alq","ton","tAlq","tHa","tAno","rHa","rAlq","rAno","nota","rResta","gap","pctSel","contribSel","fator"].includes(k) ? -1 : 1)}; filtrarContratos(); }));
   return l;
 }
 function filtroAno(ano){ limparFiltros(); $("#fAno").value = ano===2040 ? "2040+" : String(ano); location.hash = "contratos"; filtrarContratos(); }
@@ -1009,9 +1045,9 @@ function limparFiltros(){ ["#fBusca","#fAno","#fFaixa","#fPrio","#fObs"].forEach
 /* ---------- exportar CSV ---------- */
 async function exportarCsv(){
   const l = filtrarContratos();
-  const cab = ["Contrato","Propriedade","Fundo Agrícola","Fornecedor","Parceiro Agrícola","Área Ha","Área Alq","% Área","t/alq","t/ha","Contrib. ponderada","t/safra","R$/ha/ano","R$/safra","Data Contrato","Previsão Encerramento","Prazo anos","% decorrido","Safras restantes","R$ restante","Gap mercado t/alq","Prioridade","Nota","Faixa","Observações"];
+  const cab = ["Contrato","Propriedade","Fundo Agrícola","Fornecedor","Parceiro Agrícola","Área Contratada Ha","Área Contratada Alq","Toneladas (Ha/Alq)","Data Contrato","Previsão Encerramento","Observações","Ha ÷ Alq","% da área","t/safra","t/ha","Contrib. ponderada","R$/ha/ano","R$/alq/ano","R$/safra","Prazo anos","% decorrido","Safras restantes","R$ restante","Gap mercado t/alq","Prioridade","Nota","Faixa"];
   const n = (v,d=2) => v==null||!isFinite(v) ? "" : v.toFixed(d).replace(".",",");
-  const linhas = l.map(c => [c.id,c.prop,c.fundo,c.forn,c.parc,n(c.ha,4),n(c.alq,4),n(c.pctSel*100,2),n(c.tAlq),n(c.tHa,3),n(c.contribSel,4),n(c.tAno,2),n(c.rHa),n(c.rAno),fmtD(c.ini),fmtD(c.fim),n(c.prazo,1),n(c.decorrido==null?null:c.decorrido*100,1),c.R,n(c.rResta),n(c.gap),c.prio,c.nota,FAIXAS[c.fx].nome,c.obs]);
+  const linhas = l.map(c => [c.id,c.prop,c.fundo,c.forn,c.parc,n(c.ha,4),n(c.alq,4),n(c.ton),fmtD(c.ini),fmtD(c.fim),c.obs,n(c.fator,4),n(c.pctSel*100,2),n(c.tAno,2),n(c.tHa,3),n(c.contribSel,4),n(c.rHa),n(c.rAlq),n(c.rAno),n(c.prazo,1),n(c.decorrido==null?null:c.decorrido*100,1),c.R,n(c.rResta),n(c.gap),c.prio,c.nota,FAIXAS[c.fx].nome]);
   const csv = "﻿" + [cab, ...linhas].map(r => r.map(v => { const s = String(v??""); return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(";")).join("\r\n");
   const nome = "contratos-arrendamento-" + P.base + ".csv";
   try {
@@ -1033,6 +1069,31 @@ function telaParametros(){
   if(document.activeElement !== $("#pKg")) $("#pKg").value = P.kg;
   if(document.activeElement !== $("#pDireto")) $("#pDireto").value = P.direto;
   $("#pBase").value = P.base; $("#pJanela").value = P.janela; $("#pCiclo").value = P.ciclo;
+  $("#baseAlq").checked = P.baseTon !== "ha"; $("#baseHa").checked = P.baseTon === "ha";
+  if(!C.length){ $("#baseTonTxt").textContent = ""; $("#tabRefs").innerHTML = `<div class="vazio">Importe a planilha para ver as referências.</div>`; }
+  else {
+  const g = G, alt = P.baseTon === "ha" ? g.pondAlq/g.fator : g.pondHa;   // t/ha na outra base
+  $("#baseTonTxt").innerHTML = P.baseTon === "ha"
+    ? `Base Ha: ${fmt(g.tAno,0)} t/safra e <b>${fmt(g.tHa,2)} t/ha</b>. Na base Alq seriam ${fmt(alt,2)} t/ha.`
+    : `Base Alq: ${fmt(g.tAno,0)} t/safra e <b>${fmt(g.tHa,2)} t/ha</b> (${fmt(g.tAlq,2)} t/alq ÷ ${fmt(g.fator,2)} ha/alq da planilha). Na base Ha seriam ${fmt(alt,2)} t/ha por safra.`;
+  const tp = TOTAIS, ok = (a,b) => b==null ? "" : Math.abs(a-b) < 0.01 ? ` <span class="chip" style="--t:var(--f4)"><i></i>confere</span>` : ` <span class="chip" style="--t:var(--f0)"><i></i>difere</span>`;
+  const nIni = C.filter(c=>c.ini).length, nObs = C.filter(c=>c.obs).length;
+  const fims = C.map(c=>c.fim).sort((a,b)=>a-b), inis = C.filter(c=>c.ini).map(c=>c.ini).sort((a,b)=>a-b);
+  const refs = [
+    ["Contrato", "Chave de cada linha", `${fmt(C.length,0)} contratos`],
+    ["Propriedade · Fundo Agrícola", "Identificação da fazenda", `${fmt(new Set(C.map(c=>c.prop)).size,0)} propriedades`],
+    ["Fornecedor · Parceiro Agrícola", "Agrupamento da tela Parceiros (pelo código do Fornecedor)", `${fmt(new Set(C.map(c=>c.forn)).size,0)} fornecedores`],
+    ["Área Contratada Ha", "Área, % da área, t/ha, R$/ha, ponderação por Ha", `Σ ${fmt(g.ha,4)}` + (tp ? ` · planilha ${tp.celHa||""} ${fmt(tp.ha,4)}${ok(g.ha,tp.ha)}` : "")],
+    ["Área Contratada Alq", "Base da tonelagem (padrão), ponderação por Alq", `Σ ${fmt(g.alq,4)}` + (tp && tp.alq!=null ? ` · planilha ${tp.celAlq||""} ${fmt(tp.alq,4)}${ok(g.alq,tp.alq)}` : "")],
+    ["Ha ÷ Alq", "Conversão entre as duas áreas, linha a linha", `${fmt(g.fator,4)} ha/alq (linhas de ${fmt(g.fatorMin,4)} a ${fmt(g.fatorMax,4)})`],
+    ["Toneladas (Ha/Alq)", "t/safra = Toneladas × área base; média ponderada", `simples ${fmt(g.simples,2)} · pond. por Alq ${fmt(g.pondAlq,2)} · pond. por Ha ${fmt(g.pondHa,2)}`],
+    ["Data Contrato", "Prazo, % decorrido e preço de mercado (contratos novos)", `${fmt(nIni,0)} preenchidas, ${fmt(C.length-nIni,0)} vazias · ${fmtD(inis[0])} a ${fmtD(inis.at(-1))}`],
+    ["Previsão Encerramento", "Ano de vencimento, safras restantes, faixas", `${fmtD(fims[0])} a ${fmtD(fims.at(-1))}`],
+    ["Observações", "Devolução e demais sinalizações", `${fmt(nObs,0)} preenchidas`]
+  ];
+  $("#tabRefs").innerHTML = `<table class="t"><thead><tr><th>Coluna da planilha</th><th>Uso no painel</th><th>Referência</th></tr></thead><tbody>` +
+    refs.map(([a,b,c]) => `<tr><td><b>${esc(a)}</b></td><td style="white-space:normal;min-width:180px">${esc(b)}</td><td style="white-space:normal">${c}</td></tr>`).join("") + `</tbody></table>`;
+  }
   $$(".presets").forEach(box => { const alvo = box.dataset.alvo === "pAtr" ? P.atr : P.kg; $$("button", box).forEach(b => b.classList.toggle("on", Math.abs(+b.dataset.v - +alvo) < 1e-6)); });
   const p = precoT();
   $("#precoFinal").textContent = fmtR(p) + "/t";
@@ -1061,14 +1122,14 @@ async function importar(arq){
     const falta = quer.filter((q,i) => idx[i] < 0 && q !== "observacoes");
     if(falta.length) throw new Error("Faltam colunas: " + falta.join(", ") + ".");
     const dados = linhas.slice(1).filter(r => r[idx[0]]).map(r => idx.map((i,j) => { let v = i<0 ? null : r[i];
-      if(j===2 && v) v = String(v).replace(/^\s*\d+\s*-\s*/,"").replace(/\s+/g," ").trim();
-      if(j===4 && v) v = String(v).replace(/\s+/g," ").trim().toLowerCase().replace(/(^|\s)\S/g, s => s.toUpperCase());
-      if((j===0||j===10) && v) v = String(v).trim();
+      if((j===0||j===2||j===4||j===10) && v) v = String(v).replace(/\s+/g," ").trim();
       if((j===8||j===9) && typeof v === "number") v = new Date(Math.round((v - 25569)*86400000) + new Date().getTimezoneOffset()*60000);
       return v; }));
+    const tot = linhas.slice(1).map((r,i) => ({r, i})).find(({r}) => !r[idx[0]] && typeof r[idx[5]] === "number");
+    TOTAIS = tot ? {ha:tot.r[idx[5]], alq:typeof tot.r[idx[6]]==="number" ? tot.r[idx[6]] : null, celHa:XLSX.utils.encode_cell({r:tot.i+1,c:idx[5]}), celAlq:XLSX.utils.encode_cell({r:tot.i+1,c:idx[6]})} : null;
     carregar(dados);
     if(!BRUTO.length) throw new Error("Nenhum contrato com previsão de encerramento foi encontrado.");
-    origemTxt = arq.name; guarda.gravar("arr-dados", {nome:arq.name, dados:dados.map(l => l.map(v => v instanceof Date ? v.toISOString().slice(0,10) : v))});
+    origemTxt = arq.name; guarda.gravar("arr-dados", {nome:arq.name, totais:TOTAIS, dados:dados.map(l => l.map(v => v instanceof Date ? v.toISOString().slice(0,10) : v))});
     recalcular(); msg.className = "ok-msg"; msg.textContent = `${plural(BRUTO.length,"contrato carregado","contratos carregados")}.`; avisar("Planilha importada.");
   } catch(e){ msg.className = "erro-msg"; msg.textContent = e.message || "Não foi possível ler a planilha. Confira se é a Relação de Contratos em .xlsx."; }
 }
@@ -1132,6 +1193,7 @@ function ligar(){
   $("#buscaParc").addEventListener("input", () => desenharParceiros());
   $$("[data-filtro-prio]").forEach(a => a.addEventListener("click", ev => { ev.preventDefault(); limparFiltros(); $("#fPrio").value = a.dataset.filtroPrio; location.hash = "contratos"; filtrarContratos(); }));
   // parâmetros
+  $$('input[name="baseTon"]').forEach(r => r.addEventListener("change", () => { P.baseTon = r.value; salvarParam(); }));
   $$('input[name="modo"]').forEach(r => r.addEventListener("change", () => { P.modo = r.value; salvarParam(); }));
   const num = (sel, k, int) => $(sel).addEventListener("input", () => { const v = parseFloat($(sel).value); if(isFinite(v) && v >= 0){ P[k] = int ? Math.round(v) : v; salvarParam(); } });
   num("#pAtr","atr"); num("#pKg","kg"); num("#pDireto","direto"); num("#pJanela","janela",true); num("#pCiclo","ciclo",true);
@@ -1149,7 +1211,7 @@ function ligar(){
   const tema = guarda.ler("pcm-tema"); if(tema === "dark" || tema === "light") document.documentElement.dataset.theme = tema;
   let linhas = DADOS_PLANILHA;
   const salvo = guarda.ler("arr-dados");
-  if(salvo && Array.isArray(salvo.dados) && salvo.dados.length && (!linhas.length || salvo.nome !== ORIGEM_PLANILHA)){ linhas = salvo.dados; origemTxt = salvo.nome; }
+  if(salvo && Array.isArray(salvo.dados) && salvo.dados.length && (!linhas.length || salvo.nome !== ORIGEM_PLANILHA)){ linhas = salvo.dados; origemTxt = salvo.nome; TOTAIS = salvo.totais || null; }
   carregar(linhas);
   ligar();
   calcular();

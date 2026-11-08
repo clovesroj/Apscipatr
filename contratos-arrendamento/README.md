@@ -19,9 +19,12 @@ Telas: Painel executivo, Vencimentos por ano, Análise crítica, Parceiros, Tabe
 
 | Item | Regra |
 |---|---|
-| Toneladas (Ha/Alq) | t de cana por **alqueire mineiro** (4,84 ha) por safra |
-| t/ha | t/alq ÷ (ha ÷ alq) |
-| Média ponderada | Σ(t/alq × alq) ÷ Σ alq; a coluna "Contrib. pond." soma a média |
+| Fonte | Só as colunas da planilha, com os nomes originais; nenhum parâmetro de outros módulos do SIGA |
+| t/safra | Toneladas (Ha/Alq) × Área Contratada Alq (padrão) ou × Área Contratada Ha (escolha em Parâmetros) |
+| t/ha | t/safra ÷ Área Contratada Ha |
+| Ha ÷ Alq | medido na própria planilha, linha a linha (4,84 em todas as linhas de NOV/2026) |
+| Média ponderada | Σ(Toneladas × área base) ÷ Σ área base; a coluna "Contrib. pond." soma a média |
+| Conferência | somas de Área Contratada Ha e Alq comparadas com a linha de total da planilha (=SUM, F354/G354) |
 | Preço da tonelada | ATR (kg/t) × preço do kg de ATR (Consecana), ou R$/t informado |
 | R$/ha/ano | t/ha × R$/t |
 | Safra corrente | abril a março; encerramento em 30/11 paga a safra do ano |
