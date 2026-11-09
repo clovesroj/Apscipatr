@@ -132,6 +132,8 @@ main{flex:1;min-width:0;padding-block:22px 48px;padding-left:max(16px,env(safe-a
 
 /* Indicadores (pcm-ind do SIGA) */
 .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+#painelKpis{display:flex;flex-wrap:wrap}
+#painelKpis>.kpi{flex:1 1 220px}
 .kpi{--k:#1E4B9A;position:relative;overflow:hidden;isolation:isolate;border-radius:16px;padding:14px 16px 13px;
   border:1.5px solid color-mix(in srgb,var(--k) 30%,transparent);
   background:linear-gradient(135deg,color-mix(in srgb,var(--k) 13%,var(--card)),color-mix(in srgb,var(--k) 3%,var(--card)));
@@ -832,7 +834,6 @@ function telaPainel(){
     {k:"--k-azul", ic:"doc", rot:"Contratos ativos", val:fmt(g.n,0), sub:`${fmt(g.parc,0)} parceiros · ${fmt(new Set(C.map(c=>c.prop)).size,0)} propriedades`, ir:"contratos"},
     {k:"--k-verde", ic:"mapa", rot:"Área arrendada", val:fmt(g.ha,2), un:"ha", sub:`${fmt(g.alq,2)} alq · 1 alq = ${fmt(g.fator,2)} ha na planilha`},
     {k:"--k-anil", ic:"balanca", rot:"Toneladas (Ha/Alq) ponderada", val:fmt(g.tAlq,2), un:"t/alq", sub:`${fmt(g.tHa,2)} t/ha · ponderada pela Área Contratada Alq`, ir:"parametros"},
-    {k:"--k-teal", ic:"cana", rot:"Cana de arrendamento", val:fmt(g.tAno,0), un:"t/safra", sub:`${fmt(g.tResta,0)} t nas safras futuras dos contratos`},
     {k:"--k-roxo", ic:"moeda", rot:"Custo anual estimado", val:fmtRc(g.rAno), sub:`a ${fmtR(g.preco)}/t · ${fmtRc(g.rResta)} até o fim dos contratos`, ir:"parametros"},
     {k:"--k-ouro", ic:"moeda", rot:"Custo médio por hectare", val:fmtR(g.rHa,0), un:"/ha/ano", sub:`${fmtR(g.rHa*g.tAlq/g.tHa,0)} por alqueire/ano`, ir:"parametros"},
     {k:"--k-vermelho", ic:"alerta", rot:"Vence em até 3 safras", val:fmtP(gc.ha/g.ha), sub:`${fmt(gc.ha,0)} ha em ${plural(gc.n,"contrato","contratos")} (até ${g.S+3})`, ir:"vencimentos"},
@@ -1392,10 +1393,11 @@ class RelPdf {
   nota(t){ this.paragrafo(t, {tam:6.8, cor:RGB.cinza, depois:3}); }
   // indicadores: fundo branco, borda #D5DBE1, rótulo cinza em maiúsculas, valor grande na cor do significado
   kpis(lista, porLinha=4){
-    const gap = 3, w = (this.L - gap*(porLinha-1)) / porLinha, h = 21;
+    const gap = 3, h = 21;
     for(let i=0; i<lista.length; i+=porLinha){
       this.cabe(h + 2);
-      lista.slice(i, i+porLinha).forEach((k, j) => {
+      const linha = lista.slice(i, i+porLinha), w = (this.L - gap*(linha.length-1)) / linha.length;   // a última linha estica, sem buraco
+      linha.forEach((k, j) => {
         const x = this.M + j*(w+gap), y = this.y, d = this.doc;
         this.cor(RGB.branco); this.cor(RGB.borda, "draw"); d.setLineWidth(0.3); d.roundedRect(x, y, w, h, 1.5, 1.5, "FD");
         this.cor(k.c || RGB.azul); d.rect(x, y + 1.5, 1, h - 3, "F");
@@ -1517,7 +1519,6 @@ function pdfPainel(R){
     {rot:"Contratos ativos", val:fmt(g.n,0), sub:`${fmt(g.parc,0)} parceiros · ${fmt(new Set(C.map(c=>c.prop)).size,0)} propriedades`, c:RGB.azul},
     {rot:"Área arrendada", val:fmt(g.ha,2), un:"ha", sub:`${fmt(g.alq,2)} alq · 1 alq = ${fmt(g.fator,2)} ha na planilha`, c:RGB.ok},
     {rot:"Toneladas (Ha/Alq) ponderada", val:fmt(g.tAlq,2), un:"t/alq", sub:`${fmt(g.tHa,2)} t/ha · ponderada pela Área Contratada Alq`, c:RGB.azul},
-    {rot:"Cana de arrendamento", val:fmt(g.tAno,0), un:"t/safra", sub:`${fmt(g.tResta,0)} t nas safras futuras dos contratos`, c:[12,133,153]},
     {rot:"Custo anual estimado", val:fmtRc(g.rAno), sub:`a ${fmtR(g.preco)}/t · ${fmtRc(g.rResta)} até o fim dos contratos`, c:RGB.roxo},
     {rot:"Custo médio por hectare", val:fmtR(g.rHa,0), un:"/ha/ano", sub:`${fmtR(g.rAno/g.alq,0)} por alqueire/ano`, c:[176,122,0]},
     {rot:"Vence em até 3 safras", val:fmtP(curto.ha/g.ha), sub:`${fmt(curto.ha,0)} ha em ${plural(curto.n,"contrato","contratos")} (até ${g.S+3})`, c:RGB.bad},
