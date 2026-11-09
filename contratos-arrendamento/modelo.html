@@ -432,10 +432,6 @@ table.t tr.detalhe table.t th{position:static}
         <div class="tab-rolo" id="tabRecorte"></div>
         <p class="nota">Em cada linha: R$/ha = valor pago pelo grupo ÷ soma da Área Contratada Ha do grupo; R$/alq = o mesmo valor ÷ soma da Área Contratada Alq. A linha Toda a base é a média ponderada geral.</p>
       </div>
-      <div class="cartao">
-        <div class="cartao-cab"><div><h2>Sensibilidade ao preço da tonelada</h2><p>Quanto muda o preço médio ponderado se a tonelada de cana variar</p></div></div>
-        <div class="tab-rolo" id="tabSensib"></div>
-      </div>
     </section>
 
     <!-- ===== ANÁLISE ===== -->
@@ -1239,10 +1235,6 @@ function bandasRHa(){
     out.push({de:v, ate:v+passo, lista:l, g:resumoPreco(l)}); }
   return out;
 }
-function sensibilidade(){
-  const base = precoT();
-  return [-0.2,-0.1,0,0.1,0.2].map(d => { const p = base*(1+d); return {d, p, rHa:G.tHa*p, rAlq:G.tAlq*p, rAno:G.tAno*p}; });
-}
 function telaPrecos(){
   const g = resumoPreco(C), preco = G.preco;
   const p25 = percentilPond(C,"rHa","ha",.25), p50 = percentilPond(C,"rHa","ha",.5), p75 = percentilPond(C,"rHa","ha",.75);
@@ -1283,16 +1275,10 @@ function telaPrecos(){
   const linhas = linhasRecorte(recortePreco);
   $("#precoRecSub").textContent = `Agrupado por ${RECORTES[recortePreco].nome.toLowerCase()}; cada linha ponderada pela área do grupo`;
   $("#tabRecorte").innerHTML = `<table class="t"><thead><tr><th class="fix">${esc(RECORTES[recortePreco].nome)}</th><th class="n">Contratos</th><th class="n">Área Contratada Ha</th><th class="n">Área Contratada Alq</th><th class="n">% da área</th>
-    <th class="n">Toneladas (Ha/Alq) pond.</th><th class="n">t/ha pond.</th><th class="n">R$/ha/ano pond.</th><th class="n">R$/alq/ano pond.</th><th class="n">R$/safra</th><th class="n">R$/ha frente à média</th></tr></thead><tbody>` +
-    linhas.map(l => { const d = (l.rHa - g.rHa)/g.rHa;
-      return `<tr><td class="fix"><b>${l.cor?`<span class="chip" style="--t:${l.cor}"><i></i>${esc(l.rot)}</span>`:esc(l.rot)}</b></td><td class="n">${fmt(l.n,0)}</td><td class="n">${fmt(l.ha,2)}<span class="bar-mini"><span style="width:${Math.min(100,l.ha/g.ha*100*2.5).toFixed(0)}%"></span></span></td><td class="n">${fmt(l.alq,2)}</td><td class="n">${fmtP(l.ha/g.ha,1)}</td>
-      <td class="n">${fmt(l.tAlq,2)}</td><td class="n">${fmt(l.tHa,2)}</td><td class="n"><b>${fmtR(l.rHa,2)}</b></td><td class="n"><b>${fmtR(l.rAlq,2)}</b></td><td class="n">${fmtR(l.rAno,0)}</td>
-      <td class="n" style="color:${d>0?"var(--bad)":"var(--ok)"}">${d>0?"+":""}${fmtP(d,1)}</td></tr>`; }).join("") +
-    `</tbody><tfoot><tr><td class="fix">Toda a base</td><td class="n">${fmt(g.n,0)}</td><td class="n">${fmt(g.ha,2)}</td><td class="n">${fmt(g.alq,2)}</td><td class="n">100%</td><td class="n">${fmt(g.tAlq,2)}</td><td class="n">${fmt(g.tHa,2)}</td><td class="n">${fmtR(g.rHa,2)}</td><td class="n">${fmtR(g.rAlq,2)}</td><td class="n">${fmtR(g.rAno,0)}</td><td class="n">–</td></tr></tfoot></table>`;
-  // sensibilidade
-  $("#tabSensib").innerHTML = `<table class="t"><thead><tr><th>Preço da tonelada</th><th class="n">R$/t</th><th class="n">R$/ha/ano pond.</th><th class="n">R$/alq/ano pond.</th><th class="n">R$/safra</th><th class="n">Diferença por safra</th></tr></thead><tbody>` +
-    sensibilidade().map(s => `<tr ${s.d===0?'style="font-weight:700"':""}><td>${s.d===0?"Atual (Parâmetros)":(s.d>0?"+":"")+fmtP(s.d)}</td><td class="n">${fmtR(s.p,2)}</td><td class="n">${fmtR(s.rHa,2)}</td><td class="n">${fmtR(s.rAlq,2)}</td><td class="n">${fmtR(s.rAno,0)}</td>
-      <td class="n" style="color:${s.d>0?"var(--bad)":s.d<0?"var(--ok)":"inherit"}">${s.d===0?"–":(s.d>0?"+":"")+fmtR(s.rAno-g.rAno,0)}</td></tr>`).join("") + `</tbody></table>`;
+    <th class="n">Toneladas (Ha/Alq) pond.</th><th class="n">t/ha pond.</th><th class="n">R$/ha/ano pond.</th><th class="n">R$/alq/ano pond.</th><th class="n">R$/safra</th></tr></thead><tbody>` +
+    linhas.map(l => `<tr><td class="fix"><b>${l.cor?`<span class="chip" style="--t:${l.cor}"><i></i>${esc(l.rot)}</span>`:esc(l.rot)}</b></td><td class="n">${fmt(l.n,0)}</td><td class="n">${fmt(l.ha,2)}<span class="bar-mini"><span style="width:${Math.min(100,l.ha/g.ha*100*2.5).toFixed(0)}%"></span></span></td><td class="n">${fmt(l.alq,2)}</td><td class="n">${fmtP(l.ha/g.ha,1)}</td>
+      <td class="n">${fmt(l.tAlq,2)}</td><td class="n">${fmt(l.tHa,2)}</td><td class="n"><b>${fmtR(l.rHa,2)}</b></td><td class="n"><b>${fmtR(l.rAlq,2)}</b></td><td class="n">${fmtR(l.rAno,0)}</td></tr>`).join("") +
+    `</tbody><tfoot><tr><td class="fix">Toda a base</td><td class="n">${fmt(g.n,0)}</td><td class="n">${fmt(g.ha,2)}</td><td class="n">${fmt(g.alq,2)}</td><td class="n">100%</td><td class="n">${fmt(g.tAlq,2)}</td><td class="n">${fmt(g.tHa,2)}</td><td class="n">${fmtR(g.rHa,2)}</td><td class="n">${fmtR(g.rAlq,2)}</td><td class="n">${fmtR(g.rAno,0)}</td></tr></tfoot></table>`;
 }
 function pdfPrecos(R){
   const g = resumoPreco(C), preco = G.preco;
@@ -1321,16 +1307,13 @@ function pdfPrecos(R){
   R.secao("Área por faixa de R$ por hectare/ano", `Laranja = acima da média ponderada de ${fmtR(g.rHa,0)}/ha`, 62);
   R.barras(bandas.map(x => ({v:x.g.ha, rot:fmt(x.de,0), rot2:"a "+fmt(x.ate,0), cor:(x.de+x.ate)/2 < g.rHa ? RGB.leaf : RGB.f[2], lab:fmt(x.g.ha,0)})), {altura:45});
   const cols = n => [{t:n,w:1.4},{t:"Contratos",w:.7,a:"r"},{t:"Área Contratada Ha",w:1.1,a:"r"},{t:"Área Contratada Alq",w:1.1,a:"r"},{t:"% da área",w:.8,a:"r"},{t:"Toneladas (Ha/Alq) pond.",w:1.1,a:"r"},
-    {t:"t/ha pond.",w:.8,a:"r"},{t:"R$/ha/ano pond.",w:1.1,a:"r"},{t:"R$/alq/ano pond.",w:1.1,a:"r"},{t:"R$/safra",w:1.1,a:"r"},{t:"R$/ha frente à média",w:1,a:"r"}];
+    {t:"t/ha pond.",w:.8,a:"r"},{t:"R$/ha/ano pond.",w:1.1,a:"r"},{t:"R$/alq/ano pond.",w:1.1,a:"r"},{t:"R$/safra",w:1.1,a:"r"}];
   ["faixa","anoFim","tamanho","preco","anoIni"].forEach(k => {
     R.secao("Preço médio ponderado por " + RECORTES[k].nome.toLowerCase());
-    R.tabela(cols(RECORTES[k].nome), linhasRecorte(k).map(l => { const d = (l.rHa-g.rHa)/g.rHa; return [{t:l.rot,b:true}, fmt(l.n,0), fmt(l.ha,2), fmt(l.alq,2), fmtP(l.ha/g.ha,1), fmt(l.tAlq,2), fmt(l.tHa,2),
-      {t:fmtR(l.rHa,2),b:true}, {t:fmtR(l.rAlq,2),b:true}, fmtR(l.rAno,0), {t:(d>0?"+":"")+fmtP(d,1), c:d>0?RGB.bad:RGB.ok}]; }),
-      {total:["Toda a base",fmt(g.n,0),fmt(g.ha,2),fmt(g.alq,2),"100%",fmt(g.tAlq,2),fmt(g.tHa,2),fmtR(g.rHa,2),fmtR(g.rAlq,2),fmtR(g.rAno,0),"-"]});
+    R.tabela(cols(RECORTES[k].nome), linhasRecorte(k).map(l => [{t:l.rot,b:true}, fmt(l.n,0), fmt(l.ha,2), fmt(l.alq,2), fmtP(l.ha/g.ha,1), fmt(l.tAlq,2), fmt(l.tHa,2),
+      {t:fmtR(l.rHa,2),b:true}, {t:fmtR(l.rAlq,2),b:true}, fmtR(l.rAno,0)]),
+      {total:["Toda a base",fmt(g.n,0),fmt(g.ha,2),fmt(g.alq,2),"100%",fmt(g.tAlq,2),fmt(g.tHa,2),fmtR(g.rHa,2),fmtR(g.rAlq,2),fmtR(g.rAno,0)]});
   });
-  R.secao("Sensibilidade ao preço da tonelada");
-  R.tabela([{t:"Preço da tonelada",w:1.3},{t:"R$/t",w:1,a:"r"},{t:"R$/ha/ano pond.",w:1.2,a:"r"},{t:"R$/alq/ano pond.",w:1.2,a:"r"},{t:"R$/safra",w:1.3,a:"r"},{t:"Diferença por safra",w:1.3,a:"r"}],
-    sensibilidade().map(s => [s.d===0 ? {t:"Atual (Parâmetros)",b:true} : (s.d>0?"+":"")+fmtP(s.d), fmtR(s.p,2), fmtR(s.rHa,2), fmtR(s.rAlq,2), fmtR(s.rAno,0), s.d===0 ? "-" : (s.d>0?"+":"")+fmtR(s.rAno-g.rAno,0)]), {larg:220});
   R.nota("Média ponderada: cada contrato pesa pela sua área. A média simples trata um contrato de 1 ha igual a um de 500 ha e por isso não representa o que a usina paga.");
 }
 
