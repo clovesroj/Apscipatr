@@ -156,6 +156,53 @@ p{margin:0}
 #notes{position:fixed;left:0;right:0;bottom:0;max-height:42vh;overflow:auto;background:rgba(20,24,28,.96);border-top:3px solid var(--lime);padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));font-size:18px;line-height:1.6;color:var(--ink);z-index:20}
 #notes .nh{font-family:var(--mono);font-size:14px;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
 #notes p{margin:0 0 10px;max-width:980px}
+/* encerramento: mensagem da segurança (frase → foto → expressão) */
+.msg{padding:86px 110px 110px}
+.msg > *:not(template){transition:opacity .6s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+.msg-intro,.msg-top,.msg-big,.msg-side,.msg-photo,.msg-end,.mosaic{position:absolute;opacity:0;pointer-events:none}
+.msg-intro{left:110px;right:110px;top:50%;transform:translateY(-46%)}
+.msg-intro h1{font-size:104px;margin-top:22px;max-width:1300px}
+.msg-intro .hand{font-size:26px;margin-top:34px}
+.msg[data-mode="intro"] .msg-intro{opacity:1;transform:translateY(-50%)}
+.msg-top{right:110px;top:78px;display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:22px;color:var(--mute)}
+.msg-bars{display:flex;gap:4px}
+.msg-bars i{width:10px;height:4px;border-radius:2px;background:rgba(255,255,255,.14);transition:background .4s}
+.msg-bars i.on{background:var(--lime)}
+.msg[data-mode="phrase"] .msg-top,.msg[data-mode="photo"] .msg-top{opacity:1}
+.msg-big{left:110px;top:50%;width:1320px;transform:translateY(-44%);font-family:var(--display);font-weight:800;font-size:92px;line-height:1.08;letter-spacing:-.01em;margin:0;text-wrap:balance}
+.msg[data-mode="phrase"] .msg-big{opacity:1;transform:translateY(-50%)}
+.msg[data-mode="photo"] .msg-big{transform:translate(-40px,-62%) scale(.92);opacity:0}
+.caret{display:inline-block;width:.09em;height:.86em;margin-left:.06em;background:var(--lime);vertical-align:-.08em;animation:blink 1s steps(1) infinite}
+.msg-side{left:110px;top:190px;width:540px;display:flex;flex-direction:column;gap:34px;transform:translateX(-24px)}
+.msg[data-mode="photo"] .msg-side{opacity:1;transform:none}
+.msg-small{font-family:var(--display);font-weight:800;font-size:40px;line-height:1.18;color:var(--ink);margin:0}
+.msg-ans{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+.msg-ans p{margin-top:10px;font-family:var(--display);font-weight:900;font-size:62px;line-height:1.02;letter-spacing:-.015em;color:var(--lime)}
+.msg[data-mode="photo"] .msg-ans.show{opacity:1;transform:none}
+.msg-photo{right:110px;top:150px;width:760px;height:600px;margin:0;border-radius:20px;overflow:hidden;background:var(--panel);box-shadow:0 0 0 2px rgba(194,255,107,.22),0 50px 90px -40px rgba(0,0,0,.7)}
+.msg[data-mode="photo"] .msg-photo{opacity:1}
+.msg-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none;filter:grayscale(1) contrast(1.1)}
+.msg-photo .tint{position:absolute;inset:0;background:linear-gradient(160deg,rgba(194,255,107,.16),rgba(38,44,50,.28));mix-blend-mode:multiply}
+.msg-photo .beam{position:absolute;top:0;bottom:0;width:120px;left:100%;background:linear-gradient(90deg,transparent,rgba(194,255,107,.55) 45%,rgba(255,255,255,.85) 50%,rgba(194,255,107,.55) 55%,transparent);filter:blur(2px);opacity:0}
+.msg-photo.rv{animation:wipe 1s cubic-bezier(.75,0,.2,1) both}
+.msg-photo.rv img{animation:settle 1.8s cubic-bezier(.2,.8,.2,1) both}
+.msg-photo.rv .beam{animation:beam 1s cubic-bezier(.75,0,.2,1) both}
+@keyframes wipe{from{clip-path:inset(0 0 0 100% round 20px)}to{clip-path:inset(0 0 0 0 round 20px)}}
+@keyframes settle{from{transform:scale(1.22);filter:grayscale(1) contrast(1.1) blur(6px)}to{transform:none;filter:grayscale(1) contrast(1.1) blur(0)}}
+@keyframes beam{0%{left:100%;opacity:1}85%{opacity:1}100%{left:-120px;opacity:0}}
+.mosaic{inset:0;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(4,1fr);gap:6px}
+.mosaic i{background-size:cover;background-position:center;filter:grayscale(1) contrast(1.05);opacity:0;transform:scale(.86)}
+.mosaic::after{content:'';position:absolute;inset:0;background:radial-gradient(75% 85% at 30% 50%,rgba(38,44,50,.92) 0%,rgba(38,44,50,.78) 55%,rgba(38,44,50,.55) 100%)}
+.msg[data-mode="end"] .mosaic{opacity:1}
+.msg[data-mode="end"] .mosaic i{animation:tile .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--d) * 1ms)}
+@keyframes tile{to{opacity:.55;transform:none}}
+.msg-end{left:110px;right:110px;top:50%;transform:translateY(-44%)}
+.msg[data-mode="end"] .msg-end{opacity:1;transform:translateY(-50%)}
+.msg-final{margin-top:24px;font-family:var(--display);font-weight:900;font-size:100px;line-height:1.02;letter-spacing:-.02em;max-width:1320px;text-wrap:balance}
+.msg-final .w{display:inline-block;opacity:0;transform:translateY(.4em)}
+.msg[data-mode="end"] .msg-final .w{animation:wordin .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i) * 90ms + 700ms)}
+@keyframes wordin{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.msg-photo.rv,.msg-photo.rv img,.msg-photo.rv .beam,.msg[data-mode="end"] .mosaic i,.msg[data-mode="end"] .msg-final .w{animation-duration:1ms;animation-delay:0ms}}
 template{display:none}
 @media (prefers-reduced-motion:reduce){.slide,.step,.opt{transition:none}.slide.on .ph{animation:none}}
 </style>
@@ -248,7 +295,7 @@ template{display:none}
     <div class="tl step" data-s="1"><span class="t">8 min</span><h3>O tamanho do problema</h3><p>O que os números do Brasil dizem sobre o trabalho.</p></div>
     <div class="tl step" data-s="2"><span class="t">24 min</span><h3>Um dia de trabalho</h3><p>Sete situações, das 6h às 18h. Você escolhe.</p></div>
     <div class="tl step" data-s="3"><span class="t">15 min</span><h3>Liderança que inspira</h3><p>Como uma atitude muda uma equipe. E o que é dever de quem lidera.</p></div>
-    <div class="tl step" data-s="4"><span class="t">6 min</span><h3>Segurança que transforma</h3><p>Três atitudes para levar para casa.</p></div>
+    <div class="tl step" data-s="4"><span class="t">12 min</span><h3>Segurança que transforma</h3><p>Três atitudes e uma mensagem para levar para casa.</p></div>
   </div>
   <template class="notes"><p><b>1 min.</b> Só apresente o caminho. Não explique os blocos.</p></template>
 </section>
@@ -499,9 +546,9 @@ template{display:none}
 <section class="slide chapter" data-bg="particles" data-block="4">
   <div class="eyebrow">Bloco 4</div>
   <h1 style="margin-top:20px">Segurança que transforma</h1>
-  <p class="lead">Para terminar, três atitudes.</p>
+  <p class="lead">Para terminar, três atitudes e uma mensagem.</p>
   <div class="num">4</div>
-  <template class="notes"><p><b>Bloco 4 · fala de encerramento, cerca de 6 min.</b> Cada slide acompanha uma parte da fala, e as notas trazem o texto de cada parte. Avance só nas marcas → indicadas.</p></template>
+  <template class="notes"><p><b>Bloco 4 · fala de encerramento e Mensagem da Segurança do Trabalho, cerca de 12 min.</b> Cada slide acompanha uma parte da fala, e as notas trazem o texto de cada parte. Avance só nas marcas → indicadas.</p></template>
 </section>
 
 <section class="slide speech" data-bg="hatch" data-block="4">
@@ -556,6 +603,27 @@ template{display:none}
   <template class="notes"><p><b>PARTE 5 · ≈ 1min</b></p>
 <p>Quero terminar retomando a pergunta que fiz no início. Quando saímos de casa pela manhã, existem pessoas que esperam nossa volta. Para quem trabalha no campo, para quem opera máquinas, para quem dirige caminhões, para quem trabalha na indústria e para todos que fazem a usina funcionar, existe algo que precisa estar acima de qualquer resultado. A nossa vida.</p>
 <p><b>→</b> A produção termina. <b>→</b> Os resultados são contabilizados. <b>→</b> Mas a vida precisa continuar.</p></template>
+</section>
+
+<section class="slide msg" data-id="msg" data-bg="dark" data-block="4" data-mode="intro">
+  <div class="mosaic" id="msgmosaic" aria-hidden="true"></div>
+  <div class="msg-intro">
+    <div class="eyebrow">Para encerrar</div>
+    <h1>Mensagem da <span class="lime">Segurança do Trabalho</span> aos colaboradores.</h1>
+    <p class="hand">✋ Leia a frase, olhe a foto e complete em voz alta.</p>
+  </div>
+  <div class="msg-top" aria-hidden="true"><span id="msgcount">01 / 28</span><span class="msg-bars" id="msgbars"></span></div>
+  <p class="msg-big" id="msgbig"></p>
+  <div class="msg-side">
+    <p class="msg-small" id="msgsmall"></p>
+    <div class="msg-ans"><span class="eyebrow">a expressão</span><p id="msgans"></p></div>
+  </div>
+  <figure class="msg-photo" id="msgphoto"><img id="msgimg" alt=""><span class="tint"></span><span class="beam"></span></figure>
+  <div class="msg-end">
+    <div class="eyebrow">Mensagem da Segurança do Trabalho</div>
+    <p class="msg-final" id="msgfinal">Conte com a <span class="lime">SEGURANÇA</span> para melhorar as condições do seu trabalho.</p>
+  </div>
+  <template class="notes"><p><b>Encerramento · Mensagem da Segurança do Trabalho · cerca de 6 min.</b> Cada → alterna: a frase aparece digitando; no → seguinte entra a foto e, um segundo depois, a expressão. Antes de revelar a foto, deixe o público tentar completar em voz alta. Ritmo rápido, cerca de 12 segundos por par.</p><p>01. Estamos lhe dando um… <b>chá de cadeira</b><br>02. Para você não… <b>entrar pelo cano</b><br>03. Esta mensagem é uma… <b>mão na roda</b><br>04. E não serve para… <b>encher linguiça</b><br>05. Diariamente surgem problemas. Às vezes temos de… <b>descascar um abacaxi</b><br>06. Ou até… <b>engolir sapo</b><br>07. Mas antes de… <b>chorar pelo leite derramado</b><br>08. E para você não ser pego de… <b>calças curtas</b><br>09. O melhor ainda é… <b>andar na linha</b><br>10. Evitar o retrabalho é muito simples. É só… <b>acertar na mosca</b><br>11. Trabalhe sem procurar… <b>pelo em ovo</b><br>12. E sem fazer… <b>tempestade em copo d’água</b><br>13. Às vezes você encontra uma… <b>mala sem alça</b><br>14. Dando uma de… <b>João sem braço</b><br>15. Tentando te colocar… <b>minhoca na cabeça</b><br>16. Mas não fique… <b>marcando touca</b><br>17. Trabalhe com segurança sem… <b>chutar o balde</b><br>18. Às vezes você pensa que a segurança não passa de uma… <b>pedra no sapato</b><br>19. Mas não fique… <b>com o pé atrás</b><br>20. Pois, em se tratando de segurança, você está com… <b>a faca e o queijo na mão</b><br>21. É só tomar cuidado para não… <b>trocar as bolas</b><br>22. E muito menos ficar… <b>quebrando o galho</b><br>23. Pois você pode acabar… <b>pisando na bola</b><br>24. E depois vai ficar se sentindo com a… <b>corda no pescoço</b><br>25. Ou então, como uma… <b>carta fora do baralho</b><br>26. E se tudo der errado e ocorrer um acidente de trabalho, é você quem acaba… <b>pagando o pato</b><br>27. E, antes do tempo, poderá… <b>pendurar as chuteiras</b><br>28. Ou até mesmo… <b>bater as botas</b><br></p><p>Último →: “Conte com a SEGURANÇA para melhorar as condições do seu trabalho.”, com o mosaico de todas as fotos. Depois avance para o fechamento.</p></template>
 </section>
 
 <section class="slide speech" data-bg="particles" data-block="4" style="padding-bottom:150px">
@@ -613,7 +681,8 @@ function hud(){
 const hooks={
   counter:{enter(){}},
   deaths:{enter(s){countUp(s.querySelector('#dth'),32000,1800)}},
-  lider:{step(n){people.step(n)},enter(){people.step(0)}}
+  lider:{step(n){people.step(n)},enter(){people.step(0)}},
+  msg:{step(n){msg&&msg.render(n)},enter(){msg&&msg.enter()}}
 };
 function countUp(el,to,ms){if(reduce){el.textContent=fmt(to);return}const a=performance.now();
   (function f(t){const p=Math.min(1,(t-a)/ms),e=1-Math.pow(1-p,3);el.textContent=fmt(Math.round(to*e));if(p<1)requestAnimationFrame(f)})(a);}
@@ -667,6 +736,38 @@ setInterval(()=>{
   document.getElementById('cnt').textContent=fmt(Math.floor(el*RATE));
   document.getElementById('cntclock').textContent='em '+mmss(el)+' de apresentação · cerca de 1,4 por minuto';
 },250);
+
+/* encerramento: mensagem da segurança */
+const MSG=[["Estamos lhe dando um…", "chá de cadeira"], ["Para você não…", "entrar pelo cano"], ["Esta mensagem é uma…", "mão na roda"], ["E não serve para…", "encher linguiça"], ["Diariamente surgem problemas. Às vezes temos de…", "descascar um abacaxi"], ["Ou até…", "engolir sapo"], ["Mas antes de…", "chorar pelo leite derramado"], ["E para você não ser pego de…", "calças curtas"], ["O melhor ainda é…", "andar na linha"], ["Evitar o retrabalho é muito simples. É só…", "acertar na mosca"], ["Trabalhe sem procurar…", "pelo em ovo"], ["E sem fazer…", "tempestade em copo d’água"], ["Às vezes você encontra uma…", "mala sem alça"], ["Dando uma de…", "João sem braço"], ["Tentando te colocar…", "minhoca na cabeça"], ["Mas não fique…", "marcando touca"], ["Trabalhe com segurança sem…", "chutar o balde"], ["Às vezes você pensa que a segurança não passa de uma…", "pedra no sapato"], ["Mas não fique…", "com o pé atrás"], ["Pois, em se tratando de segurança, você está com…", "a faca e o queijo na mão"], ["É só tomar cuidado para não…", "trocar as bolas"], ["E muito menos ficar…", "quebrando o galho"], ["Pois você pode acabar…", "pisando na bola"], ["E depois vai ficar se sentindo com a…", "corda no pescoço"], ["Ou então, como uma…", "carta fora do baralho"], ["E se tudo der errado e ocorrer um acidente de trabalho, é você quem acaba…", "pagando o pato"], ["E, antes do tempo, poderá…", "pendurar as chuteiras"], ["Ou até mesmo…", "bater as botas"]];
+const msg=(()=>{const sl=document.querySelector('[data-id="msg"]');if(!sl)return null;
+  const N=MSG.length,total=N*2+1;
+  for(let i=1;i<=total;i++){const sp=document.createElement('span');sp.className='step';sp.dataset.s=i;sp.hidden=true;sl.appendChild(sp);}
+  const $=id=>document.getElementById(id);
+  const big=$('msgbig'),small=$('msgsmall'),ans=$('msgans'),ansBox=ans.parentElement,fig=$('msgphoto'),img=$('msgimg'),count=$('msgcount'),bars=$('msgbars'),mosaic=$('msgmosaic'),fin=$('msgfinal');
+  const src=k=>'img/msg/'+String(k+1).padStart(2,'0')+'.jpg';
+  bars.innerHTML='<i></i>'.repeat(N);
+  /* palavras da frase final */
+  (function(){let i=0;const walk=n=>{[...n.childNodes].forEach(c=>{if(c.nodeType===3){const f=document.createDocumentFragment();c.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w)){f.appendChild(document.createTextNode(' '));return}const sp=document.createElement('span');sp.className='w';sp.style.setProperty('--i',i++);sp.textContent=w;f.appendChild(sp)});c.replaceWith(f)}else walk(c)})};walk(fin)})();
+  let last=-1,tmr=null,ansT=null,built=false,loaded=false;
+  const esc=t=>t.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  function type(t,animate){clearInterval(tmr);if(!animate||reduce){big.innerHTML=esc(t)+'<i class="caret"></i>';return}
+    let i=0;big.innerHTML='<i class="caret"></i>';tmr=setInterval(()=>{i++;big.innerHTML=esc(t.slice(0,i))+'<i class="caret"></i>';if(i>=t.length)clearInterval(tmr)},28);}
+  function buildMosaic(){if(built)return;built=true;const cols=7,rows=4;let h='';
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const k=r*cols+c;const d=Math.round(Math.hypot(c-3,(r-1.5)*1.4)*110);h+=`<i style="background-image:url(${src(k%N)});--d:${d}"></i>`;}
+    mosaic.innerHTML=h;}
+  function enter(){if(!loaded){loaded=true;for(let k=0;k<N;k++){const im=new Image();im.src=src(k);}}last=-1;}
+  function render(n){const fwd=n===last+1;clearTimeout(ansT);
+    if(n<=0){sl.dataset.mode='intro';last=n;return}
+    if(n>=total){buildMosaic();clearInterval(tmr);sl.dataset.mode='end';last=n;return}
+    const k=(n-1)>>1,ph=(n-1)&1,[t,a]=MSG[k];
+    count.textContent=String(k+1).padStart(2,'0')+' / '+N;
+    [...bars.children].forEach((b,j)=>b.classList.toggle('on',j<=k));
+    if(ph===0){sl.dataset.mode='phrase';type(t,fwd);ansBox.classList.remove('show');}
+    else{clearInterval(tmr);big.innerHTML=esc(t)+'<i class="caret"></i>';small.textContent=t;ans.textContent=a;img.src=src(k);
+      sl.dataset.mode='photo';ansBox.classList.remove('show');fig.classList.remove('rv');void fig.offsetWidth;fig.classList.add('rv');
+      if(fwd&&!reduce)ansT=setTimeout(()=>ansBox.classList.add('show'),1100);else ansBox.classList.add('show');}
+    last=n;}
+  return {render,enter};})();
 
 /* pessoas que acendem */
 const people=(()=>{const cv=document.getElementById('peoplecv'),c=cv.getContext('2d');const P=[];
