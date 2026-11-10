@@ -422,7 +422,7 @@ table.t tr.detalhe table.t th{position:static}
       <div class="duas">
         <div class="cartao"><div class="cartao-cab"><div><h2>Memória de cálculo</h2><p>Como cada média ponderada é obtida, com os números da base</p></div></div>
           <div class="tab-rolo" id="precoMemoria"></div>
-          <p class="nota">Média ponderada: cada contrato pesa pela sua área. A média simples trata um contrato de 1 ha igual a um de 500 ha e por isso não representa o que a usina paga.</p></div>
+          <p class="nota">Média ponderada: cada contrato pesa pela sua área.</p></div>
         <div class="cartao"><div class="cartao-cab"><div><h2>Dispersão do preço por hectare</h2><p>Área (ha) em cada faixa de R$ por hectare/ano</p></div></div>
           <div class="cartao-corpo"><div class="legenda" id="legPrecoHa"></div><div class="graf" id="grafPrecoHa"></div></div></div>
       </div>
@@ -1323,7 +1323,7 @@ function pdfPrecos(R){
       {t:fmtR(l.rHa,2),b:true}, {t:fmtR(l.rAlq,2),b:true}, fmtR(l.rAno,0)]),
       {total:["Toda a base",fmt(g.n,0),fmt(g.ha,2),fmt(g.alq,2),"100%",fmt(g.tAlq,2),fmt(g.tHa,2),fmtR(g.rHa,2),fmtR(g.rAlq,2),fmtR(g.rAno,0)]});
   });
-  R.nota("Média ponderada: cada contrato pesa pela sua área. A média simples trata um contrato de 1 ha igual a um de 500 ha e por isso não representa o que a usina paga.");
+  R.nota("Média ponderada: cada contrato pesa pela sua área.");
 }
 
 /* ================= IMPRESSÃO / PDF =================
