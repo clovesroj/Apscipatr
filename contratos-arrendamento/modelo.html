@@ -851,7 +851,7 @@ function telaPainel(){
       <div class="lin"><span><b>${fmt(a.n,0)}</b> contratos</span><span><b>${fmtP(a.ha/tot,1)}</b> da área</span></div>
       <div class="lin"><span>Ponderada</span><b>${fmt(a.tAlq,2)} t/alq</b></div></div>`; }).join("");
   $$("#painelFaixas .faixa").forEach(el => { const ir = () => filtroFaixa(+el.dataset.fx); el.addEventListener("click", ir); el.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){e.preventDefault(); ir();} }); });
-  const A = achados();
+  const A = achados().filter(a => !a.semPainel);
   $("#painelAlertas").innerHTML = `<div style="display:grid;gap:10px">` + A.slice(0,5).map(a => `<div style="display:flex;gap:10px;align-items:flex-start">
     <span class="chip" style="--t:var(${a.cor});flex:none"><i></i>${esc(a.nivel)}</span><div style="min-width:0"><b style="font-family:var(--f-display);font-size:15px">${esc(a.titulo)}</b><div style="font-size:12.5px;color:var(--grey)">${a.resumo}</div></div></div>`).join("") + `</div>`;
   const prox = C.filter(c => c.fx <= 1).sort((a,b)=>a.fim-b.fim || b.ha-a.ha);
@@ -926,7 +926,7 @@ function achados(){
     texto:`<b>${fmt(gN.ha,2)} ha</b> em ${plural(gN.n,"contrato","contratos")} terminam na safra ${safraRot(g.S)}. ${gN.dev ? `${plural(gN.dev,"já tem","já têm")} devolução sinalizada (${fmt(gN.devHa,2)} ha).` : ""} Sem aditivo assinado, a cana que está no campo fica sem cobertura contratual para a próxima colheita.`,
     rec:"Fechar esta semana a decisão de renovar ou devolver cada contrato; para os que saem, programar destruição de soqueira e laudo de devolução da área."});
   if(prox.length) out.push({nivel:"Alto", cor:"--f1", titulo:`${fmt(gP.ha,0)} ha vencem na safra ${safraRot(g.S+1)}`,
-    resumo:`${plural(gP.n,"contrato","contratos")}, ponderada de ${fmt(gP.tAlq,2)} t/alq; ${gP.dev ? fmt(gP.devHa,0)+" ha já marcados para devolução." : "nenhum com devolução marcada."}`,
+    resumo:`${plural(gP.n,"contrato","contratos")}.`,
     texto:`${plural(gP.n,"contrato","contratos")} somam <b>${fmt(gP.ha,2)} ha</b> e pagam ${fmt(gP.tAlq,2)} t/alq. ${gP.dev ? `<b>${fmt(gP.devHa,2)} ha</b> já estão marcados como devolução em 2027.` : ""} A negociação precisa começar antes do plantio de 2027 para não perder a janela de reforma.`,
     rec:"Abrir a rodada de renovação agora, com proposta-base ao preço de mercado e prazo mínimo de 6 safras para viabilizar reforma."});
   out.push({nivel: g3.ha/g.ha > .15 ? "Alto" : "Atenção", cor: g3.ha/g.ha > .15 ? "--f1" : "--f2", titulo:`${fmtP(g3.ha/g.ha)} da área vence em até 3 safras`,
@@ -934,13 +934,14 @@ function achados(){
     texto:`Até ${g.S+3} encerram <b>${fmt(g3.ha,2)} ha</b> (${plural(g3.n,"contrato","contratos")}). Entre ${g.S+3} e ${g.S+6} vem a onda maior: <b>${fmt(gOnda.ha,0)} ha</b> em ${plural(gOnda.n,"contrato","contratos")}, com pico em ${pico.rot} (${fmt(pico.ha,0)} ha, ${fmtP(pico.pct,1)} da carteira). Renovar tudo no mesmo ano concentra risco de preço e de perda de área.`,
     rec:`Escalonar as renovações: antecipar parte de ${pico.rot} para os anos anteriores com aditivo de prazo, trocando preço por prazo.`});
   const velhos = C.filter(c=>c.gap > 0), gV = agregar(velhos);
-  out.push({nivel: gV.impT*g.preco > 0.05*g.rAno ? "Alto" : "Atenção", cor: gV.impT*g.preco > 0.05*g.rAno ? "--f1" : "--f2", titulo:`Mercado pede ${fmt(g.mercado,2)} t/alq, carteira paga ${fmt(g.tAlq,2)}`,
+  // semPainel: fica só na Análise crítica, fora dos Pontos de atenção do Painel
+  out.push({semPainel:true, nivel: gV.impT*g.preco > 0.05*g.rAno ? "Alto" : "Atenção", cor: gV.impT*g.preco > 0.05*g.rAno ? "--f1" : "--f2", titulo:`Mercado pede ${fmt(g.mercado,2)} t/alq, carteira paga ${fmt(g.tAlq,2)}`,
     resumo:`Renovar todos ao preço novo custaria <b>${fmt(gV.impT,0)} t/safra</b> a mais (${fmtRc(gV.impT*g.preco)}/safra).`,
     texto:`Os ${plural(g.mercadoN,"contrato assinado","contratos assinados")} nos últimos ${P.janela} meses saíram, na média ponderada, a <b>${fmt(g.mercado,2)} t/alq</b> (${fmt(g.mercado/g.fator,2)} t/ha), contra ${fmt(g.tAlq,2)} da carteira. ${plural(gV.n,"contrato está abaixo","contratos estão abaixo")} desse nível (${fmt(gV.ha,0)} ha): levá-los ao mercado acrescenta <b>${fmt(gV.impT,0)} t por safra</b>, ${fmtRc(gV.impT*g.preco)} a ${fmtR(g.preco)}/t.`,
     rec:"Na renovação, negociar a partir do preço atual do contrato e oferecer prazo ou bônus de produtividade em vez de subir direto ao preço de mercado."});
   const semRef = C.filter(c=>c.reforma && !c.dev && c.fx>0), gR = agregar(semRef);
   out.push({nivel:"Atenção", cor:"--f2", titulo:`${fmt(gR.ha,0)} ha sem janela para reforma`,
-    resumo:`${plural(gR.n,"contrato tem","contratos têm")} menos de ${P.ciclo} safras restantes: reformar ali sem renovar é investimento sem retorno.`,
+    resumo:`${plural(gR.n,"contrato tem","contratos têm")} menos de ${P.ciclo} safras restantes.`,
     texto:`A cana reformada precisa de pelo menos ${P.ciclo} cortes para pagar o plantio. <b>${plural(gR.n,"contrato","contratos")}</b> (${fmt(gR.ha,2)} ha) têm menos que isso pela frente. Cada hectare reformado nessas áreas sem aditivo de prazo vira custo afundado no fim do contrato.`,
     rec:"Amarrar o plano de reforma ao calendário de contratos: só reformar talhão de contrato com prazo igual ou maior que o ciclo, ou com aditivo assinado."});
   const col = C.filter(c=>c.colheita), gCo = agregar(col);
@@ -1544,7 +1545,7 @@ function pdfPainel(R){
       return [{t:f.nome, b:true, c:corFx(f.id)}, f.desc, an.length ? (an[0]===an.at(-1) ? String(an[0]) : an[0]+" a "+an.at(-1)) : "-", fmt(a.n,0), fmt(a.ha,2), fmtP(a.ha/g.ha,1), fmt(a.tAlq,2), fmtR(a.rAno,0)]; }),
     {total:["Total","","",fmt(g.n,0),fmt(g.ha,2),"100%",fmt(g.tAlq,2),fmtR(g.rAno,0)]});
   R.secao("Pontos de atenção");
-  achados().slice(0,5).forEach(a => R.paragrafo(`${a.nivel.toUpperCase()} · ${plano(a.titulo)}: ${plano(a.resumo)}`, {tam:7.8, depois:1}));
+  achados().filter(a => !a.semPainel).slice(0,5).forEach(a => R.paragrafo(`${a.nivel.toUpperCase()} · ${plano(a.titulo)}: ${plano(a.resumo)}`, {tam:7.8, depois:1}));
   R.y += 2;
   const prox = C.filter(c => c.fx <= 1).sort((a,b)=>a.fim-b.fim || b.ha-a.ha);
   R.secao("Próximos vencimentos", "Contratos que encerram nas próximas duas safras");
