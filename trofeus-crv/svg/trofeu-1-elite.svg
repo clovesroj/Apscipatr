@@ -55,24 +55,16 @@
     <circle cx="320" cy="408" r="82" fill="url(#t1n)" stroke="#5e3c04" stroke-width="2"/>
   </g>
   <g transform="translate(256 342) scale(0.66)" filter="url(#t1s2)">
-  <g stroke-linejoin="round">
-    <path fill="url(#t1e)" stroke="#04122b" stroke-width="3" d="M96 20 C122 16 146 30 154 54 L160 68 L152 100 L138 106 L141 120 L128 140
-      L142 162 L123 157 L127 184 L107 169 L102 197 L86 175 L73 195 L66 169 L46 182 L50 153 L28 159 L42 131 L20 126 L40 105
-      L22 89 L46 78 L34 57 L60 54 L57 33 L80 38 Z"/>
-    <path fill="#a8720a" d="M128 140 L142 162 L123 157 L127 184 L107 169 L102 197 L86 175 L73 195 L66 169 L46 182 L50 153 L28 159 L42 131
-      L58 141 L74 129 L88 148 L102 134 L114 150 Z"/>
-    <path fill="#a8720a" d="M40 105 L62 104 L52 92 L74 90 L62 76 L46 78 L22 89 Z" opacity=".7"/>
-    <path fill="none" stroke="#04122b" stroke-width="2.5" stroke-linecap="round" d="M70 60 L84 66 M60 84 L78 86 M84 104 L98 100 M72 112 L60 118 M100 118 L112 112"/>
-    <!-- bico -->
-    <path fill="#fff6c2" stroke="#04122b" stroke-width="3" d="M152 52 C176 54 196 76 193 110 C192 122 187 130 180 135 C181 120 174 109 160 105 L136 105 C134 86 140 66 152 52 Z"/>
-    <path fill="#fff6c2" stroke="#04122b" stroke-width="3" d="M138 108 L165 109 C167 119 159 128 146 128 C141 122 138 115 138 108 Z"/>
-    <path fill="#04122b" d="M168 84 C174 86 178 90 179 96 C174 93 170 92 165 92 Z"/>
-    <path fill="#fff" opacity=".45" d="M156 60 C170 62 182 72 186 88 C178 76 168 70 152 68 Z"/>
-    <!-- sobrancelha e olho -->
-    <path fill="#04122b" d="M92 54 L154 62 L150 76 L112 71 Z"/>
-    <path fill="#ffffff" stroke="#04122b" stroke-width="2" d="M116 73 L147 77 C144 89 126 91 116 73 Z"/>
-    <circle cx="135" cy="80" r="4.2" fill="#04122b"/>
-  </g></g>
+  <g fill="url(#t1e)" stroke="#04122b" stroke-width="1.8" stroke-linejoin="round">
+    <path d="M108 80 C126 56 158 34 197 22 Q191 38 170 46 Q180 42 194 48 Q188 64 167 68 Q174 66 188 72 Q182 88 160 88 Q164 88 178 94 Q172 110 150 104 Q152 106 166 112 Q160 128 139 117 Q138 120 152 126 Q146 142 128 127 Q124 130 138 136 Q124 134 114 122 Z"/><path d="M170 46 Q146.6 67.5 124 84 M167 68 Q145 78.4 123 90 M160 88 Q141.1 88.4 122 96 M150 104 Q135.6 96.6 121 102 M139 117 Q129.6 103.5 120 108 M128 127 Q123.5 109 119 114" fill="none" stroke-width="2.6" stroke-linecap="round"/><g transform="translate(200 0) scale(-1 1)"><path d="M108 80 C126 56 158 34 197 22 Q191 38 170 46 Q180 42 194 48 Q188 64 167 68 Q174 66 188 72 Q182 88 160 88 Q164 88 178 94 Q172 110 150 104 Q152 106 166 112 Q160 128 139 117 Q138 120 152 126 Q146 142 128 127 Q124 130 138 136 Q124 134 114 122 Z"/><path d="M170 46 Q146.6 67.5 124 84 M167 68 Q145 78.4 123 90 M160 88 Q141.1 88.4 122 96 M150 104 Q135.6 96.6 121 102 M139 117 Q129.6 103.5 120 108 M128 127 Q123.5 109 119 114" fill="none" stroke-width="2.6" stroke-linecap="round"/></g>
+    <path d="M100 136 L130 186 L112 176 L100 198 L88 176 L70 186 Z"/>
+    <path d="M100 150 L100 196 M94 150 L80 180 M106 150 L120 180" fill="none" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M78 84 Q100 72 122 84 L126 118 L100 160 L74 118 Z"/>
+    <path d="M82 92 C76 66 84 42 104 39 C116 37 125 45 128 54 L146 61 C139 64 134 70 132 79 L124 68 L117 70 C115 80 117 90 120 98 Z"/>
+  </g>
+  <path d="M105 51 L121 55 L112 61 Z" fill="#04122b"/>
+  <path d="M100 104 L113 116 L100 146 L87 116 Z" fill="#04122b" opacity=".85"/>
+  <path d="M100 111 L107 117 L100 135 L93 117 Z" fill="#fff6c2"/></g>
   <g filter="url(#t1s)">
     <rect x="96" y="930" width="448" height="26" rx="5" fill="url(#t1h)" stroke="#5e3c04" stroke-width="2"/>
     <rect x="116" y="806" width="408" height="126" fill="url(#t1b)" stroke="#000" stroke-width="2"/>

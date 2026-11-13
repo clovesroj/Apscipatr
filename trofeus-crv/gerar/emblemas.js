@@ -1,78 +1,90 @@
-// Emblemas das equipes, desenhados numa caixa 200x200.
+// Emblemas das equipes em estilo silhueta, desenhados numa caixa 200x200.
 // c = { main, shade, line, accent, eye } — cada um é um valor de fill SVG.
+const r = n => Math.round(n * 10) / 10;
 
-function aguia(c) {
-  return `
-  <g stroke-linejoin="round">
-    <path fill="${c.main}" stroke="${c.line}" stroke-width="3" d="M96 20 C122 16 146 30 154 54 L160 68 L152 100 L138 106 L141 120 L128 140
-      L142 162 L123 157 L127 184 L107 169 L102 197 L86 175 L73 195 L66 169 L46 182 L50 153 L28 159 L42 131 L20 126 L40 105
-      L22 89 L46 78 L34 57 L60 54 L57 33 L80 38 Z"/>
-    <path fill="${c.shade}" d="M128 140 L142 162 L123 157 L127 184 L107 169 L102 197 L86 175 L73 195 L66 169 L46 182 L50 153 L28 159 L42 131
-      L58 141 L74 129 L88 148 L102 134 L114 150 Z"/>
-    <path fill="${c.shade}" d="M40 105 L62 104 L52 92 L74 90 L62 76 L46 78 L22 89 Z" opacity=".7"/>
-    <path fill="none" stroke="${c.line}" stroke-width="2.5" stroke-linecap="round" d="M70 60 L84 66 M60 84 L78 86 M84 104 L98 100 M72 112 L60 118 M100 118 L112 112"/>
-    <!-- bico -->
-    <path fill="${c.accent}" stroke="${c.line}" stroke-width="3" d="M152 52 C176 54 196 76 193 110 C192 122 187 130 180 135 C181 120 174 109 160 105 L136 105 C134 86 140 66 152 52 Z"/>
-    <path fill="${c.accent}" stroke="${c.line}" stroke-width="3" d="M138 108 L165 109 C167 119 159 128 146 128 C141 122 138 115 138 108 Z"/>
-    <path fill="${c.line}" d="M168 84 C174 86 178 90 179 96 C174 93 170 92 165 92 Z"/>
-    <path fill="#fff" opacity=".45" d="M156 60 C170 62 182 72 186 88 C178 76 168 70 152 68 Z"/>
-    <!-- sobrancelha e olho -->
-    <path fill="${c.line}" d="M92 54 L154 62 L150 76 L112 71 Z"/>
-    <path fill="${c.eye}" stroke="${c.line}" stroke-width="2" d="M116 73 L147 77 C144 89 126 91 116 73 Z"/>
-    <circle cx="135" cy="80" r="4.2" fill="${c.line}"/>
-  </g>`;
+function penas(S, n, a0, passo, L0, dL, lado) {
+  // leque de penas em lâmina a partir do ombro S
+  let s = '';
+  for (let k = 0; k < n; k++) {
+    const a = (a0 - k * passo) * Math.PI / 180;
+    const L = L0 - k * dL;
+    const dx = Math.cos(a) * lado, dy = -Math.sin(a);
+    const nx = -dy * lado * -1, ny = dx * lado * -1 * -1; // normal para o lado de cima
+    const ux = Math.sin(a) * lado * -1 * -1 * -1, uy = -Math.cos(a);
+    const P = (t, o) => `${r(S[0] + dx * t + ux * o)} ${r(S[1] + dy * t + uy * o)}`;
+    s += `<path d="M${P(10, 7)} Q${P(L * .62, 13)} ${P(L, 5)} Q${P(L * .6, -3)} ${P(10, -6)} Z"/>`;
+  }
+  return s;
 }
 
-function metadeGato(c) {
+function aguia(c) {
+  const T = [[197, 22], [194, 48], [188, 72], [178, 94], [166, 112], [152, 126], [138, 136]];
+  const N = [[170, 46], [167, 68], [160, 88], [150, 104], [139, 117], [128, 127]];
+  let d = 'M108 80 C126 56 158 34 197 22';
+  for (let i = 0; i < N.length; i++) d += ` Q${T[i][0] - 6} ${T[i][1] + 16} ${N[i][0]} ${N[i][1]} Q${T[i + 1][0] - 14} ${T[i + 1][1] - 6} ${T[i + 1][0]} ${T[i + 1][1]}`;
+  d += ' Q124 134 114 122 Z';
+  const fendas = N.map((n, i) => `M${n[0]} ${n[1]} Q${r(118 + (n[0] - 118) * .55)} ${r(96 + (n[1] - 96) * .45 - 6 + i)} ${r(124 + i * -1)} ${r(84 + i * 6)}`).join(' ');
+  const asa = `<path d="${d}"/><path d="${fendas}" fill="none" stroke-width="2.6" stroke-linecap="round"/>`;
   return `
-    <path fill="${c.main}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round" d="M100 56 L124 52 L152 16 L164 62 L178 84 L169 92 L188 112 L173 117 L186 140 L167 139
-      L169 160 L149 153 L137 177 L118 186 L100 192 Z"/>
-    <path fill="${c.line}" d="M148 32 L156 62 L133 56 Z"/>
-    <path fill="${c.shade}" d="M188 112 L160 110 L173 117 Z M186 140 L156 128 L167 139 Z M169 160 L147 142 L149 153 Z"/>
-    <path fill="${c.shade}" d="M100 150 C110 158 124 156 130 144 L140 160 L137 177 L118 186 L100 192 Z" opacity=".55"/>
-    <!-- elmo -->
-    <path fill="${c.accent}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round" d="M100 36 L120 42 L136 64 L166 86 L154 100 L126 93 L111 101 L107 130 L100 138 Z"/>
-    <path fill="#fff" opacity=".28" d="M100 40 L118 45 L132 64 L120 60 L110 50 L100 48 Z"/>
-    <circle cx="150" cy="87" r="3.4" fill="${c.line}"/>
-    <!-- olho -->
-    <path fill="${c.eye}" stroke="${c.line}" stroke-width="2.4" stroke-linejoin="round" d="M116 101 L150 104 L140 115 L122 113 Z"/>
-    <!-- focinho e presas -->
-    <path fill="${c.line}" d="M100 138 L111 135 L107 147 L100 151 Z"/>
-    <path fill="${c.line}" d="M100 158 L127 152 L121 176 L100 183 Z"/>
-    <path fill="#fff" stroke="${c.line}" stroke-width="1.6" stroke-linejoin="round" d="M114 155 L124 153 L120 181 Z"/>
-    <path fill="none" stroke="${c.line}" stroke-width="2" stroke-linecap="round" d="M132 138 L156 134 M132 145 L154 148"/>`;
+  <g fill="${c.main}" stroke="${c.line}" stroke-width="1.8" stroke-linejoin="round">
+    ${asa}<g transform="translate(200 0) scale(-1 1)">${asa}</g>
+    <path d="M100 136 L130 186 L112 176 L100 198 L88 176 L70 186 Z"/>
+    <path d="M100 150 L100 196 M94 150 L80 180 M106 150 L120 180" fill="none" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M78 84 Q100 72 122 84 L126 118 L100 160 L74 118 Z"/>
+    <path d="M82 92 C76 66 84 42 104 39 C116 37 125 45 128 54 L146 61 C139 64 134 70 132 79 L124 68 L117 70 C115 80 117 90 120 98 Z"/>
+  </g>
+  <path d="M105 51 L121 55 L112 61 Z" fill="${c.line}"/>
+  <path d="M100 104 L113 116 L100 146 L87 116 Z" fill="${c.line}" opacity=".85"/>
+  <path d="M100 111 L107 117 L100 135 L93 117 Z" fill="${c.accent}"/>`;
 }
 
 function gato(c) {
   return `
-  <g>
-    <g>${metadeGato(c)}</g>
-    <g transform="translate(200 0) scale(-1 1)">${metadeGato(c)}</g>
-    <!-- crista do elmo -->
-    <path fill="${c.accent}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round" d="M100 6 L110 40 L105 96 L100 104 L95 96 L90 40 Z"/>
-    <path fill="#fff" opacity=".3" d="M100 12 L104 40 L100 92 Z"/>
+  <g stroke-linejoin="round">
+    <path fill="${c.main}" stroke="${c.line}" stroke-width="2" d="M62 14 L86 40 C102 33 122 38 138 52 L152 62 C162 70 172 78 180 86
+      C186 92 186 101 179 105 L167 107 L160 140 L150 111 L139 113 L134 124 L129 114 L110 117 L121 141 L139 149 L143 135 L149 151
+      L163 153 C169 159 167 169 159 173 L129 181 L113 177 L105 197 L93 181 L80 199 L73 177 L53 190 L54 165 L32 170 L42 147
+      L20 141 L38 123 L22 105 L42 97 C40 70 46 48 56 40 Z"/>
+    <!-- listras -->
+    <path fill="${c.line}" d="M42 147 L70 142 L56 152 Z M38 123 L68 122 L52 130 Z M54 165 L78 156 L66 168 Z M93 181 L98 160 L104 176 Z M73 177 L80 158 L86 172 Z"/>
+    <path fill="${c.line}" d="M126 150 L140 158 L156 160 L140 166 L124 162 Z" opacity=".5"/>
+    <!-- elmo -->
+    <path fill="${c.accent}" stroke="${c.line}" stroke-width="2" d="M50 104 C44 72 56 48 84 40 C104 33 124 38 140 51 L182 86 L170 94 L150 84 L146 104
+      L124 110 L110 98 L86 108 L70 98 Z"/>
+    <path fill="${c.main}" stroke="${c.line}" stroke-width="2" d="M62 14 L88 44 L62 52 Z"/>
+    <path fill="${c.line}" d="M66 26 L80 44 L66 48 Z"/>
+    <path fill="none" stroke="${c.line}" stroke-width="2" stroke-linecap="round" d="M60 62 C78 50 108 46 134 60"/>
+    <path fill="${c.shade}" d="M56 96 C52 80 56 68 60 62 C78 50 108 46 134 60 L144 68 C120 56 86 58 64 74 Z" opacity=".55"/>
+    <g fill="${c.line}"><circle cx="64" cy="90" r="2.6"/><circle cx="82" cy="98" r="2.6"/><circle cx="142" cy="96" r="2.6"/><circle cx="166" cy="84" r="2.6"/></g>
+    <!-- olho -->
+    <path fill="${c.eye}" stroke="${c.line}" stroke-width="2" d="M112 70 L142 76 L132 86 L118 83 Z"/>
+    <!-- presas -->
+    <path fill="#fff" stroke="${c.line}" stroke-width="1.4" d="M167 107 L160 140 L150 111 Z M139 113 L134 124 L129 114 Z M139 149 L143 135 L149 151 Z"/>
   </g>`;
 }
 
 function cavalo(c) {
   return `
   <g stroke-linejoin="round">
-    <!-- crina -->
-    <path fill="${c.accent}" stroke="${c.line}" stroke-width="3" d="M116 30 C92 36 72 54 62 80 L38 70 C40 92 46 102 54 112 L24 110 C28 130 36 140 46 146
-      L14 154 C22 170 32 178 44 182 L20 197 L96 197 C70 150 84 90 120 48 Z"/>
-    <!-- cabeça e pescoço -->
-    <path fill="${c.main}" stroke="${c.line}" stroke-width="3" d="M116 40 L107 12 L122 30 L128 8 L138 40 C152 60 164 90 176 118 C183 130 188 144 184 156
-      C180 167 166 171 156 164 L150 152 C140 151 130 145 124 134 C120 152 128 174 144 197 L60 197 C60 150 76 86 116 40 Z"/>
-    <path fill="${c.shade}" d="M124 134 C120 152 128 174 144 197 L120 197 C106 172 106 148 116 126 Z" opacity=".8"/>
-    
-    <path fill="none" stroke="${c.line}" stroke-width="2.6" stroke-linecap="round" d="M126 96 C146 104 150 130 126 134 M157 163 L170 153 M112 60 C100 76 92 96 88 118"/>
-    <!-- topete -->
-    <path fill="${c.accent}" stroke="${c.line}" stroke-width="2.4" d="M118 38 C132 46 140 60 138 80 C130 66 122 56 110 50 Z"/>
-    <!-- orelha interna, olho, narina -->
-    <path fill="${c.line}" d="M128 16 L133 38 L124 34 Z"/>
-    <path fill="${c.eye}" stroke="${c.line}" stroke-width="2.2" d="M124 74 L144 79 C141 89 128 88 124 74 Z"/>
-    <circle cx="135" cy="80" r="3.2" fill="${c.line}"/>
-    <ellipse cx="174" cy="146" rx="3.6" ry="6" transform="rotate(-20 174 146)" fill="${c.line}"/>
+    <path fill="${c.main}" stroke="${c.line}" stroke-width="2" d="M114 34 L111 6 C120 14 126 25 128 36 C138 50 146 66 152 84 C158 100 166 114 172 126
+      C177 134 177 144 171 150 C166 155 158 155 153 150 C150 146 148 142 144 139 C136 137 128 132 121 123
+      C116 138 118 158 130 180 C136 190 142 196 148 199 L44 199 C40 150 56 86 100 44 C104 40 108 36 114 34 Z"/>
+    <path fill="${c.shade}" d="M121 123 C116 138 118 158 130 180 C136 190 142 196 148 199 L122 199 C106 176 104 150 110 128 Z" opacity=".7"/>
+    <!-- crina em mechas -->
+    <g fill="${c.accent}" stroke="${c.line}" stroke-width="1.8">
+      <path d="M62 132 C52 146 44 170 42 198 C50 178 58 164 68 152 Z"/>
+      <path d="M68 110 C52 122 36 146 28 174 C42 154 56 140 70 132 Z"/>
+      <path d="M76 88 C58 96 36 118 22 146 C42 126 60 116 76 110 Z"/>
+      <path d="M86 68 C66 72 42 90 24 116 C46 100 66 92 82 88 Z"/>
+      <path d="M98 52 C78 52 52 64 32 86 C56 74 76 70 92 68 Z"/>
+      <path d="M112 34 C92 28 66 34 46 52 C68 46 88 46 104 50 Z"/>
+      <path d="M116 34 C128 40 137 53 137 68 C130 55 122 47 110 42 Z"/>
+    </g>
+    <path fill="${c.line}" d="M115 14 C119 20 122 28 123 35 L116 33 Z"/>
+    <!-- olho, narina, mandíbula -->
+    <path fill="${c.line}" d="M128 67 C134 62 142 64 147 71 C140 74 133 73 128 67 Z"/>
+    <path fill="${c.line}" d="M163 130 C167 127 171 130 171 135 C169 139 165 139 164 136 C166 135 166 132 163 130 Z"/>
+    <path fill="none" stroke="${c.line}" stroke-width="2.4" stroke-linecap="round" d="M126 86 C142 96 142 120 122 123 M155 149 L168 145"/>
   </g>`;
 }
 
